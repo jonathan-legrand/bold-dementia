@@ -21,9 +21,7 @@ session_mapping = {
 }
 
 # TODO handle background in atlases
-# TODO load batch using nilearn
 # TODO Use caching for bids indexing
-# TODO => classmethod to init from cache?
 # TODO Type annotations
 class Memento(torch.utils.data.Dataset):
     def __init__(
