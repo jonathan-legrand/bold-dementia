@@ -9,7 +9,7 @@ import datetime
 date_parser = lambda x: datetime.strptime(x, '%d %m %Y')
 
 phenotypes = pd.read_csv(
-    "data/phenotypes.tsv",
+    "~/data/Memento/phenotypes.tsv",
     sep="\t",
     encoding="unicode_escape"
 )
