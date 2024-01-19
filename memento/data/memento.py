@@ -67,7 +67,7 @@ class Memento(torch.utils.data.Dataset):
         phenotypes = pd.read_csv(
             ppath,
             sep="\t",
-            encoding="unicode_escape"
+            encoding="unicode_escape",
         )
 
         # I don't trust date parsing in read_csv
