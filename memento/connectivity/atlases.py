@@ -3,11 +3,23 @@ import xml.etree.ElementTree as ET
 import matplotlib.pyplot as plt
 from nilearn import datasets
 
+def fetch_atlas_rsn45(
+        atlas_tsv="/bigdata/jlegrand/data/Memento/atlas/RSN_M5_clean2_ws.dat",
+        atlas_path="/bigdata/jlegrand/data/Memento/atlas/RSN_N41_atlas_M5_clean2_wscol.nii"
+    ):
+    df = pd.read_csv(atlas_tsv, sep="\t")
+    labels = df["tissue"].map(lambda x: x.strip()) + "_" + df["nroi"].astype(str) + "_" + "RSN" + df["RSN"].astype(str)
+    atlas_bunch = Bunch(
+        maps=atlas_path,
+        labels=labels,
+        description="Experimental atlas of resting state networks"
+    )
+    return atlas_bunch
 
 
 def fetch_aicha(
-    atlas_xml="AICHA/AICHA.xml",
-    atlas_path="AICHA/AICHA.nii"
+    atlas_xml="/homes_unix/jlegrand/AD-prediction/AICHA/AICHA.xml",
+    atlas_path="/homes_unix/jlegrand/AD-prediction/AICHA/AICHA.nii"
 ):
     
     atlas_desc = ET.parse(atlas_xml)
@@ -51,6 +63,7 @@ def overlay_atlas(img, atlas):
 
 atlas_mapping = {
     "AICHA": fetch_aicha,
+    "rsn41": fetch_atlas_rsn45,
     "harvard-oxford": lambda : datasets.fetch_atlas_harvard_oxford("cort-maxprob-thr25-2mm"),
     "schaeffer": lambda : datasets.fetch_atlas_schaefer_2018(resolution_mm=2),
     "difumo": lambda : datasets.fetch_atlas_difumo(legacy_format=False),
