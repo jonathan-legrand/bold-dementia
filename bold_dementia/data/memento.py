@@ -64,7 +64,7 @@ class Memento(torch.utils.data.Dataset):
     
     # TODO Change default
     @staticmethod
-    def load_phenotypes(ppath, augmented=False):
+    def load_phenotypes(ppath, augmented=True):
         if augmented:
             phenotypes = pd.read_csv(
                 ppath,
