@@ -5,6 +5,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from datetime import datetime
 import datetime
+from data.phenotypes import days_to_onset
 
 date_parser = lambda x: datetime.strptime(x, '%d %m %Y')
 
@@ -91,6 +92,7 @@ phenotypes[msk].iloc[1, :]
 # %%
 phenotypes[(~phenotypes.IRM_M48.isna()) & phenotypes.DEMENCE_DAT.isna()]
 phenotypes["time_to_onset"] = phenotypes.DEMENCE_DAT - phenotypes.INCCONSDAT_D
+phenotypes["days_to_onset"] = days_to_onset(phenotypes.INCCONSDAT_D, phenotypes.DEMENCE_DAT)
 # %%
 # %%
 
@@ -153,7 +155,6 @@ plt.legend()
 plt.show()
 
 # %%
-phenotypes["days_to_onset"] = phenotypes.time_to_onset.map(lambda x: x.days)
 sns.swarmplot(
     phenotypes,
     x="days_to_onset"
