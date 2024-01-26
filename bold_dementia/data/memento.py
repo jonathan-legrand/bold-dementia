@@ -61,14 +61,23 @@ class Memento(torch.utils.data.Dataset):
 
         self.cache_dir = Path(cache_dir)
 
-
+    
+    # TODO Change default
     @staticmethod
-    def load_phenotypes(ppath):
-        phenotypes = pd.read_csv(
-            ppath,
-            sep="\t",
-            encoding="unicode_escape",
-        )
+    def load_phenotypes(ppath, augmented=False):
+        if augmented:
+            phenotypes = pd.read_csv(
+                ppath,
+                index_col=0
+            )
+            format = None
+        else:
+            phenotypes = pd.read_csv(
+                ppath,
+                sep="\t",
+                encoding="unicode_escape",
+            )
+            format = "%d/%m/%Y"
 
         # I don't trust date parsing in read_csv
         for date_col in {
@@ -80,7 +89,7 @@ class Memento(torch.utils.data.Dataset):
             }:
             phenotypes[date_col] = pd.to_datetime(
                 phenotypes[date_col],
-                format="%d/%m/%Y"
+                format=format
             )
 
         return phenotypes.rename(columns=session_mapping)

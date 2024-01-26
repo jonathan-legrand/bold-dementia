@@ -2,6 +2,7 @@ from sklearn.utils import Bunch
 import xml.etree.ElementTree as ET
 import matplotlib.pyplot as plt
 from nilearn import datasets
+import pandas as pd
 
 def fetch_atlas_rsn45(
         atlas_tsv="/bigdata/jlegrand/data/Memento/atlas/RSN_M5_clean2_ws.dat",
