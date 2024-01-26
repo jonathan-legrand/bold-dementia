@@ -6,5 +6,4 @@ def test_loading_augmented():
         "/bigdata/jlegrand/data/Memento/output/augmented_phenotypes.csv"
     )
     common_cols = list(set(base_phenotype.columns).intersection(set(aumgented_phenotype.columns)))
-    print(common_cols)
     assert all(base_phenotype[common_cols] == aumgented_phenotype[common_cols])
