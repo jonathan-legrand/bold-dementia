@@ -92,6 +92,7 @@ class Memento(torch.utils.data.Dataset):
                 format=format
             )
 
+        phenotypes["sub"] = phenotypes["NUM_ID"].map(lambda x: x[4:])
         return phenotypes.rename(columns=session_mapping)
 
     @staticmethod
