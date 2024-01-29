@@ -13,6 +13,7 @@ from nilearn.datasets import fetch_atlas_harvard_oxford
 from nilearn.maskers import NiftiMapsMasker, NiftiLabelsMasker
 from nilearn.interfaces.fmriprep import load_confounds
 
+from bold_dementia.data.phenotypes import days_to_onset
 
 session_mapping = {
     "IRM_M0": "M000",
@@ -23,6 +24,8 @@ session_mapping = {
 # TODO handle background in atlases
 # TODO Use caching for bids indexing
 # TODO Type annotations
+# TODO Integrate Atlas object
+# The base object does not need to be a torch dataset right?
 class Memento(torch.utils.data.Dataset):
     def __init__(
         self,
@@ -32,32 +35,27 @@ class Memento(torch.utils.data.Dataset):
         cache_dir="dataset_cache"
     ):
         
-        # TODO Check atlas consistency when loading from cache
+        # TODO Does the dataset need to know all the atlas keys?
         if atlas is None:
             atlas = fetch_atlas_harvard_oxford("cort-maxprob-thr25-2mm")
         for key, value in atlas.items():
             setattr(self, key, value)
 
-        self.scans_ = self.index_bids(bids_path)
-        self.phenotypes_ = self.load_phenotypes(phenotypes_path)
-
-
-        self.masker = NiftiLabelsMasker(
-            labels_img=self.maps,
-            standardize="zscore_sample"
+        scans_ = self.index_bids(bids_path)
+        phenotypes_ = self.load_phenotypes(phenotypes_path)
+        
+        rest_dataset = pd.merge(
+            left=scans_,
+            right=phenotypes_,
+            how="left",
+            on="sub"
         )
+        rest_dataset = rest_dataset.dropna(axis=0, subset="CEN_ANOM")
+        current_scan = rest_dataset.apply(lambda row: row[row.ses], axis=1)
+        rest_dataset["scan_to_onset"] = days_to_onset(current_scan, rest_dataset["DEMENCE_DAT"])
+        self.rest_dataset = rest_dataset
 
-        fmri_path = self.scans_.file_path.to_list()
-        self.confounds, self.sample_mask = load_confounds(
-            fmri_path,
-            strategy=["high_pass", "motion", "wm_csf"],
-            motion="basic",
-            wm_csf="basic",
-        )
-
-        self.masker.fit(
-            fmri_path
-        )
+        self.masker = atlas.fit_masker()
 
         self.cache_dir = Path(cache_dir)
 
@@ -117,10 +115,18 @@ class Memento(torch.utils.data.Dataset):
         # accepts both
         fmri = nib.load(fmri_path)
 
+        # TODO Allow strategy as attributes
+        confounds, sample_mask = load_confounds(
+            fmri_path,
+            strategy=["high_pass", "motion", "wm_csf"],
+            motion="basic",
+            wm_csf="basic",
+        )
+
         time_series = self.masker.transform(
             fmri,
-            confounds=self.confounds[idx],
-            sample_mask=self.sample_mask[idx]
+            confounds=confounds,
+            sample_mask=sample_mask
         )
         return time_series
     
@@ -138,10 +144,7 @@ class Memento(torch.utils.data.Dataset):
         return len(self.scans_)
 
     def is_demented(self, idx):
-        session = self.scans_.loc[idx, "ses"]
-        scan_date = self.phenotypes_.loc[idx, session]
-        demence_date = self.phenotypes_.loc[idx, "DEMENCE_DAT"]
-        return scan_date > demence_date
+        return self.rest_dataset.loc[idx, "scan_to_onset"] <= 0
 
     def cache_series(self):
         if not os.path.exists(self.cache_dir / "time_series"):
@@ -159,6 +162,8 @@ class Memento(torch.utils.data.Dataset):
 
         self.phenotypes_.to_csv(f"{self.cache_dir}/phenotypes.csv")
         
+# TODO Use the rest_dataset instead
+# TODO Check atlas consistency when loading from cache
 class MementoTS(Memento):
     def __init__(self, cache_dir="dataset_cache"):
         cache = Path(cache_dir)
@@ -168,13 +173,18 @@ class MementoTS(Memento):
             parse_dates=True,
             date_format="%Y/%m/%d"
         )
-        self.time_series = []
+        self.time_series, self.scans_ = self.load_cached_series(cache)
+        
+    @staticmethod
+    def load_cached_series(cache):
+        time_series = []
         scans = []
         for fpath in (cache / "time_series").iterdir():
             ts = joblib.load(fpath)
-            self.time_series.append(ts)
+            time_series.append(ts)
             scans.append(parse_bids_filename(fpath))
-        self.scans_ = pd.DataFrame(scans)
+        scans = pd.DataFrame(scans)
+        return time_series, scans
 
     def __getitem__(self, idx):
         return self.time_series[idx], self.is_demented(idx)
