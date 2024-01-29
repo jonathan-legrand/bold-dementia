@@ -10,6 +10,7 @@ from pathlib import Path
 from data.memento import Memento
 from connectivity.atlases import fetch_aicha
 from nilearn.datasets import fetch_atlas_harvard_oxford
+from connectivity.atlases import Atlas
 
 BIDSDIR = Path("/georges/memento/BIDS")
 
@@ -26,5 +27,6 @@ def compute_and_cache_ts(atlas):
 
 # TODO Pass atlas and destination as argument to command line?
 if __name__ == "__main__":
-    atlas = fetch_atlas_harvard_oxford("cort-maxprob-thr25-2mm")
+    #atlas = fetch_atlas_harvard_oxford("cort-maxprob-thr25-2mm")
+    atlas = Atlas("harvard-oxford", soft=False)
     compute_and_cache_ts(atlas)
