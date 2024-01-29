@@ -62,7 +62,6 @@ class Memento(torch.utils.data.Dataset):
         self.cache_dir = Path(cache_dir)
 
     
-    # TODO Change default
     @staticmethod
     def load_phenotypes(ppath, augmented=True):
         if augmented:
@@ -175,7 +174,7 @@ class MementoTS(Memento):
             ts = joblib.load(fpath)
             self.time_series.append(ts)
             scans.append(parse_bids_filename(fpath))
-            self.scans_ = pd.DataFrame(scans)
+        self.scans_ = pd.DataFrame(scans)
 
     def __getitem__(self, idx):
         return self.time_series[idx], self.is_demented(idx)
