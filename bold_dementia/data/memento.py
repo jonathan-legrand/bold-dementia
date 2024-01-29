@@ -14,6 +14,7 @@ from nilearn.maskers import NiftiMapsMasker, NiftiLabelsMasker
 from nilearn.interfaces.fmriprep import load_confounds
 
 from bold_dementia.data.phenotypes import days_to_onset
+from bold_dementia.connectivity.atlases import Atlas
 
 session_mapping = {
     "IRM_M0": "M000",
@@ -31,15 +32,13 @@ class Memento(torch.utils.data.Dataset):
         self,
         bids_path,
         phenotypes_path,
-        atlas=None,
+        atlas:Atlas=None,
         cache_dir="dataset_cache"
     ):
         
         # TODO Does the dataset need to know all the atlas keys?
         if atlas is None:
-            atlas = fetch_atlas_harvard_oxford("cort-maxprob-thr25-2mm")
-        for key, value in atlas.items():
-            setattr(self, key, value)
+            atlas = Atlas.from_name("harvard-oxford", soft=False)
 
         scans_ = self.index_bids(bids_path)
         phenotypes_ = self.load_phenotypes(phenotypes_path)
@@ -136,10 +135,6 @@ class Memento(torch.utils.data.Dataset):
         time_series = self._extract_ts(idx)
         return time_series, self.is_demented(idx)
 
-    def __getitems__(self, indices:List[int]):
-        time_series = self._extract_ts(indices)
-        return [(time_series, self.is_demented(idx)) for idx in indices]
-
     def __len__(self):
         return len(self.scans_)
 
@@ -160,7 +155,7 @@ class Memento(torch.utils.data.Dataset):
                 ts = self._extract_ts(idx)
                 joblib.dump(ts, fpath)
 
-        self.phenotypes_.to_csv(f"{self.cache_dir}/phenotypes.csv")
+        self.rest_dataset.to_csv(f"{self.cache_dir}/phenotypes.csv")
         
 # TODO Use the rest_dataset instead
 # TODO Check atlas consistency when loading from cache
