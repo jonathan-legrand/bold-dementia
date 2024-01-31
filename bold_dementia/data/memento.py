@@ -22,11 +22,11 @@ session_mapping = {
     "IRM_M48": "M048"
 }
 
-# TODO handle background in atlases
-# TODO Use caching for bids indexing
+from joblib import Memory
+memory = Memory()
+
 # TODO Type annotations
-# TODO Integrate Atlas object
-# The base object does not need to be a torch dataset right?
+# TODO Days target
 class Memento(torch.utils.data.Dataset):
     def __init__(
         self,
@@ -36,28 +36,31 @@ class Memento(torch.utils.data.Dataset):
         cache_dir="dataset_cache"
     ):
         
-        # TODO Does the dataset need to know all the atlas keys?
         if atlas is None:
             atlas = Atlas.from_name("harvard-oxford", soft=False)
+        self.masker = atlas.fit_masker()
 
-        scans_ = self.index_bids(bids_path)
-        phenotypes_ = self.load_phenotypes(phenotypes_path)
+        self.scans_ = self.index_bids(bids_path)
+        self.phenotypes_ = self.load_phenotypes(phenotypes_path)
+        self.rest_dataset = self.make_rest_dataset(self.scans_, self.phenotypes_)
         
+
+        self.cache_dir = Path(cache_dir)
+
+    
+    @staticmethod
+    def make_rest_dataset(scans, phenotypes):
         rest_dataset = pd.merge(
-            left=scans_,
-            right=phenotypes_,
+            left=scans,
+            right=phenotypes,
             how="left",
             on="sub"
         )
         rest_dataset = rest_dataset.dropna(axis=0, subset="CEN_ANOM")
         current_scan = rest_dataset.apply(lambda row: row[row.ses], axis=1)
         rest_dataset["scan_to_onset"] = days_to_onset(current_scan, rest_dataset["DEMENCE_DAT"])
-        self.rest_dataset = rest_dataset
-
-        self.masker = atlas.fit_masker()
-
-        self.cache_dir = Path(cache_dir)
-
+        return rest_dataset.reset_index()
+        
     
     @staticmethod
     def load_phenotypes(ppath, augmented=True):
@@ -92,13 +95,14 @@ class Memento(torch.utils.data.Dataset):
         return phenotypes.rename(columns=session_mapping)
 
     @staticmethod
+    @memory.cache
     def index_bids(bids_dir):
         fmri_paths = get_bids_files(
         bids_dir / "derivatives/fmriprep-23.2.0",
         "bold",
         file_type="nii.gz",
         filters=[
-            ("space", "MNI152NLin6Asym")
+            ("space", "MNI152NLin6Asym"),
             ],
         )
         scans = pd.DataFrame(map(parse_bids_filename, fmri_paths))
@@ -106,7 +110,7 @@ class Memento(torch.utils.data.Dataset):
         return scans
 
     def _extract_ts(self, idx):
-        fmri_path = self.scans_.loc[idx, "file_path"]
+        fmri_path = self.rest_dataset["file_path"].iloc[idx]
         
         # For some reason passing the path
         # is slower than loading the image
@@ -136,16 +140,17 @@ class Memento(torch.utils.data.Dataset):
         return time_series, self.is_demented(idx)
 
     def __len__(self):
-        return len(self.scans_)
+        return len(self.rest_dataset)
 
     def is_demented(self, idx):
-        return self.rest_dataset.loc[idx, "scan_to_onset"] <= 0
+        return self.rest_dataset["scan_to_onset"].iloc[idx] <= 0
 
     def cache_series(self):
         if not os.path.exists(self.cache_dir / "time_series"):
             os.makedirs(self.cache_dir / "time_series")
             
-        for idx, row in self.scans_.iterrows():
+        # TODO STORE CONFIG in json : atlas, confounds strategy, etc
+        for idx, row in self.rest_dataset.iterrows():
             fpath = f"{self.cache_dir}/time_series/{row.file_basename}"
             print(row.file_basename)
             
@@ -157,29 +162,33 @@ class Memento(torch.utils.data.Dataset):
 
         self.rest_dataset.to_csv(f"{self.cache_dir}/phenotypes.csv")
         
-# TODO Use the rest_dataset instead
-# TODO Check atlas consistency when loading from cache
+# TODO Load config from json
 class MementoTS(Memento):
     def __init__(self, cache_dir="dataset_cache"):
-        cache = Path(cache_dir)
-        self.phenotypes_ = pd.read_csv(
-            cache / "phenotypes.csv",
+        self.cache = Path(cache_dir)
+        self.rest_dataset = pd.read_csv(
+            self.cache / "phenotypes.csv",
             index_col=0,
             parse_dates=True,
-            date_format="%Y/%m/%d"
+            date_format="%Y/%m/%d",
         )
-        self.time_series, self.scans_ = self.load_cached_series(cache)
-        
-    @staticmethod
-    def load_cached_series(cache):
-        time_series = []
-        scans = []
-        for fpath in (cache / "time_series").iterdir():
-            ts = joblib.load(fpath)
-            time_series.append(ts)
-            scans.append(parse_bids_filename(fpath))
-        scans = pd.DataFrame(scans)
-        return time_series, scans
 
     def __getitem__(self, idx):
-        return self.time_series[idx], self.is_demented(idx)
+        row = self.rest_dataset.iloc[idx, :]
+        ts = joblib.load(self.cache / f"time_series/{row.file_basename}")
+        return ts, row.scan_to_onset <= 0, row.file_basename
+
+    def __iter__(self):
+        self.counter = 0
+        return self
+
+    def __next__(self):
+        try:
+            item = self.__getitem__(self.counter)
+        except IndexError:
+            raise StopIteration()
+        except FileNotFoundError:
+            print("Caching uncomplete, stopiterations")
+            raise StopIteration()
+        self.counter += 1
+        return item
