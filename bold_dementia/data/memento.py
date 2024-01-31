@@ -33,7 +33,8 @@ class Memento(torch.utils.data.Dataset):
         bids_path,
         phenotypes_path,
         atlas:Atlas=None,
-        cache_dir="dataset_cache"
+        cache_dir="dataset_cache",
+        **confounds_kw
     ):
         
         if atlas is None:
@@ -46,6 +47,15 @@ class Memento(torch.utils.data.Dataset):
         
 
         self.cache_dir = Path(cache_dir)
+        
+        if confounds_kw is None:
+            self.confounds_kw = {
+                "strategy": ["high_pass", "motion", "wm_csf"],
+                "motion": "basic",
+                "wm_csf": "basic",
+            }
+        else:
+            self.confounds_kw = confounds_kw
 
     
     @staticmethod
@@ -121,9 +131,7 @@ class Memento(torch.utils.data.Dataset):
         # TODO Allow strategy as attributes
         confounds, sample_mask = load_confounds(
             fmri_path,
-            strategy=["high_pass", "motion", "wm_csf"],
-            motion="basic",
-            wm_csf="basic",
+            **self.confounds_kw
         )
 
         time_series = self.masker.transform(
@@ -163,6 +171,7 @@ class Memento(torch.utils.data.Dataset):
         self.rest_dataset.to_csv(f"{self.cache_dir}/phenotypes.csv")
         
 # TODO Load config from json
+# TODO Mapping from (subject, ses) to ts
 class MementoTS(Memento):
     def __init__(self, cache_dir="dataset_cache"):
         self.cache = Path(cache_dir)
