@@ -9,7 +9,7 @@ def plot_matrices(cov, prec, title, labels):
     size = prec.shape[0]
     prec[list(range(size)), list(range(size))] = 0
     #span = max(abs(prec.min()), abs(prec.max()))
-    span = (-1, 1)
+    span = 1
 
     # Display covariance matrix
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10, 10))
