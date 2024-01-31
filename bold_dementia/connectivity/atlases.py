@@ -120,7 +120,8 @@ class Atlas(Bunch):
             )
         else:
             masker = NiftiLabelsMasker(
-                labels_img=self.maps
+                labels_img=self.maps,
+                **mask_kw
             )
         masker.fit()
         return masker
