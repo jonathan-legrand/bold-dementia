@@ -166,6 +166,9 @@ class Memento(torch.utils.data.Dataset):
         if not os.path.exists(self.cache_dir / "time_series"):
             os.makedirs(self.cache_dir / "time_series")
             
+        self.rest_dataset.to_csv(f"{self.cache_dir}/phenotypes.csv")
+        self._cache_metadata()
+
         for idx, row in self.rest_dataset.iterrows():
             fpath = f"{self.cache_dir}/time_series/{row.file_basename}"
             print(row.file_basename)
@@ -176,9 +179,6 @@ class Memento(torch.utils.data.Dataset):
                 ts = self._extract_ts(idx)
                 joblib.dump(ts, fpath)
 
-        self.rest_dataset.to_csv(f"{self.cache_dir}/phenotypes.csv")
-        self._cache_metadata()
-        
         
 # TODO Mapping from (subject, ses) to ts
 class MementoTS(Memento):
