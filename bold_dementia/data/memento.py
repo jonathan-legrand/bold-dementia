@@ -130,7 +130,6 @@ class Memento(torch.utils.data.Dataset):
         # accepts both
         fmri = nib.load(fmri_path)
 
-        # TODO Allow strategy as attributes
         confounds, sample_mask = load_confounds(
             fmri_path,
             **self.confounds_kw
@@ -212,7 +211,7 @@ class MementoTS(Memento):
         except IndexError:
             raise StopIteration()
         except FileNotFoundError:
-            print("Caching uncomplete, stopiterations")
+            print("Caching uncomplete, stop iterations")
             raise StopIteration()
         self.counter += 1
         return item
