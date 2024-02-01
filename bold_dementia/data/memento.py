@@ -35,6 +35,7 @@ class Memento(torch.utils.data.Dataset):
         phenotypes_path,
         atlas:Atlas=None,
         cache_dir="dataset_cache",
+        clean_signal=False,
         **confounds_kw
     ):
         
@@ -50,14 +51,8 @@ class Memento(torch.utils.data.Dataset):
 
         self.cache_dir = Path(cache_dir)
         
-        if confounds_kw is None:
-            self.confounds_kw = {
-                "strategy": ["high_pass", "motion", "wm_csf"],
-                "motion": "basic",
-                "wm_csf": "basic",
-            }
-        else:
-            self.confounds_kw = confounds_kw
+        self.clean_signal = clean_signal
+        self.confounds_kw = confounds_kw
 
     
     @staticmethod
@@ -130,13 +125,13 @@ class Memento(torch.utils.data.Dataset):
         # accepts both
         fmri = nib.load(fmri_path)
 
-        if self.confounds_kw is None:
-            confounds, sample_mask = None, None
-        else:
+        if self.clean_signal:
             confounds, sample_mask = load_confounds(
                 fmri_path,
                 **self.confounds_kw
             )
+        else:
+            confounds, sample_mask = None, None
 
         time_series = self.masker.transform(
             fmri,
