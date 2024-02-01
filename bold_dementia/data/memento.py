@@ -181,7 +181,6 @@ class Memento(torch.utils.data.Dataset):
         self._cache_metadata()
         
         
-# TODO Load config from json
 # TODO Mapping from (subject, ses) to ts
 class MementoTS(Memento):
     def __init__(self, cache_dir="dataset_cache"):
@@ -192,6 +191,11 @@ class MementoTS(Memento):
             parse_dates=True,
             date_format="%Y/%m/%d",
         )
+
+        with open(self.cache / "metadata.json", "r") as stream:
+            config = json.load(stream)
+        for k, w in config.items():
+            setattr(self, k, w)
 
     def __getitem__(self, idx):
         row = self.rest_dataset.iloc[idx, :]
