@@ -130,10 +130,13 @@ class Memento(torch.utils.data.Dataset):
         # accepts both
         fmri = nib.load(fmri_path)
 
-        confounds, sample_mask = load_confounds(
-            fmri_path,
-            **self.confounds_kw
-        )
+        if self.confounds_kw is None:
+            confounds, sample_mask = None, None
+        else:
+            confounds, sample_mask = load_confounds(
+                fmri_path,
+                **self.confounds_kw
+            )
 
         time_series = self.masker.transform(
             fmri,
@@ -199,7 +202,7 @@ class MementoTS(Memento):
     def __getitem__(self, idx):
         row = self.rest_dataset.iloc[idx, :]
         ts = joblib.load(self.cache / f"time_series/{row.file_basename}")
-        return ts, row.scan_to_onset <= 0, row.file_basename
+        return ts, row.scan_to_onset <= 0, row.file_path
 
     def __iter__(self):
         self.counter = 0
