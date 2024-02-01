@@ -7,6 +7,7 @@ import pandas as pd
 import nibabel as nib
 import joblib
 import os
+import json
 
 from nilearn.interfaces.bids import get_bids_files, parse_bids_filename
 from nilearn.datasets import fetch_atlas_harvard_oxford
@@ -39,6 +40,7 @@ class Memento(torch.utils.data.Dataset):
         
         if atlas is None:
             atlas = Atlas.from_name("harvard-oxford", soft=False)
+        self.atlas = atlas
         self.masker = atlas.fit_masker()
 
         self.scans_ = self.index_bids(bids_path)
@@ -153,11 +155,18 @@ class Memento(torch.utils.data.Dataset):
     def is_demented(self, idx):
         return self.rest_dataset["scan_to_onset"].iloc[idx] <= 0
 
+    def _cache_metadata(self):
+        metadata = {
+                    "atlas": self.atlas.name,
+                    "confounds_kw": self.confounds_kw
+                }
+        with open(self.cache_dir / "metadata.json", "w") as stream:
+            json.dump(metadata, stream)
+
     def cache_series(self):
         if not os.path.exists(self.cache_dir / "time_series"):
             os.makedirs(self.cache_dir / "time_series")
             
-        # TODO STORE CONFIG in json : atlas, confounds strategy, etc
         for idx, row in self.rest_dataset.iterrows():
             fpath = f"{self.cache_dir}/time_series/{row.file_basename}"
             print(row.file_basename)
@@ -169,6 +178,8 @@ class Memento(torch.utils.data.Dataset):
                 joblib.dump(ts, fpath)
 
         self.rest_dataset.to_csv(f"{self.cache_dir}/phenotypes.csv")
+        self._cache_metadata()
+        
         
 # TODO Load config from json
 # TODO Mapping from (subject, ses) to ts
