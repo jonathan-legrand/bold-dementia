@@ -21,13 +21,12 @@ def compute_and_cache_ts(atlas):
         BIDSDIR,
         PPATH,
         atlas=atlas,
-        cache_dir="/georges/memento/BIDS/derivatives/model_inputs"
+        cache_dir="/georges/memento/BIDS/derivatives/schaeffer"
     )
     memento.cache_series()
     
 
 # TODO Pass atlas and destination as argument to command line?
 if __name__ == "__main__":
-    #atlas = fetch_atlas_harvard_oxford("cort-maxprob-thr25-2mm")
-    atlas = Atlas.from_name("harvard-oxford", soft=False)
+    atlas = Atlas.from_name("schaeffer", soft=False)
     compute_and_cache_ts(atlas)
