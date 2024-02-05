@@ -26,6 +26,11 @@ session_mapping = {
 from joblib import Memory
 memory = Memory()
 
+def past_diag(row):
+    return row.scan_to_onset <= 0
+
+
+
 # TODO Type annotations
 # TODO Days target
 class Memento(torch.utils.data.Dataset):
@@ -149,12 +154,14 @@ class Memento(torch.utils.data.Dataset):
     def __len__(self):
         return len(self.rest_dataset)
 
+    # TODO Custom is_demented
     def is_demented(self, idx):
         return self.rest_dataset["scan_to_onset"].iloc[idx] <= 0
 
     def _cache_metadata(self):
         metadata = {
                     "atlas": self.atlas.name,
+                    "is_cleaned": self.clean_signal,
                     "confounds_kw": self.confounds_kw
                 }
         with open(self.cache_dir / "metadata.json", "w") as stream:
@@ -180,7 +187,7 @@ class Memento(torch.utils.data.Dataset):
         
 # TODO Mapping from (subject, ses) to ts
 class MementoTS(Memento):
-    def __init__(self, cache_dir="dataset_cache"):
+    def __init__(self, cache_dir="dataset_cache", target_func=None):
         self.cache = Path(cache_dir)
         self.rest_dataset = pd.read_csv(
             self.cache / "phenotypes.csv",
@@ -194,10 +201,15 @@ class MementoTS(Memento):
         for k, w in config.items():
             setattr(self, k, w)
 
+        if target_func is None:
+            self.target_func = past_diag
+        else:
+            self.target_func = target_func
+
     def __getitem__(self, idx):
         row = self.rest_dataset.iloc[idx, :]
         ts = joblib.load(self.cache / f"time_series/{row.file_basename}")
-        return ts, row.scan_to_onset <= 0, row.file_path
+        return ts, self.target_func(row), row.file_path
 
     def __iter__(self):
         self.counter = 0
