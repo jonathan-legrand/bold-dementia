@@ -32,7 +32,7 @@ def past_diag(row):
 
 
 # TODO Type annotations
-# TODO Days target
+# TODO Custom target func like MementoTS
 class Memento(torch.utils.data.Dataset):
     def __init__(
         self,
