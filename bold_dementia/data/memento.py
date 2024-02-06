@@ -24,7 +24,7 @@ session_mapping = {
 }
 
 from joblib import Memory, Parallel, delayed
-memory = Memory()
+memory = Memory("/tmp/Memento/dataset_cache")
 
 def past_diag(row):
     return row.scan_to_onset <= 0
