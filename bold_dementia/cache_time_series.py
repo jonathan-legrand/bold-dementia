@@ -23,7 +23,7 @@ def compute_and_cache_ts(atlas):
         atlas=atlas,
         cache_dir="/georges/memento/BIDS/derivatives/schaeffer"
     )
-    memento.cache_series()
+    memento.parallel_caching()
     
 
 # TODO Pass atlas and destination as argument to command line?

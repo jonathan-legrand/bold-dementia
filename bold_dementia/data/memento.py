@@ -23,12 +23,11 @@ session_mapping = {
     "IRM_M48": "M048"
 }
 
-from joblib import Memory
+from joblib import Memory, Parallel, delayed
 memory = Memory()
 
 def past_diag(row):
     return row.scan_to_onset <= 0
-
 
 
 # TODO Type annotations
@@ -183,6 +182,28 @@ class Memento(torch.utils.data.Dataset):
             if not os.path.exists(fpath):
                 ts = self._extract_ts(idx)
                 joblib.dump(ts, fpath)
+
+    def _parallel_fetch(self, idx):
+        row = self.rest_dataset.iloc[idx]
+        fpath = f"{self.cache_dir}/time_series/{row.file_basename}"
+        if not os.path.exists(fpath):
+            return fpath, self._extract_ts(idx)
+        else:
+            return fpath, None
+    
+    def parallel_caching(self):
+        if not os.path.exists(self.cache_dir / "time_series"):
+            os.makedirs(self.cache_dir / "time_series")
+
+        parallel = Parallel(n_jobs=8, verbose=5, return_as="generator")
+        calls = [delayed(self._parallel_fetch)(idx) for idx in self.rest_dataset.index]
+        for fpath, ts in parallel(calls):
+            print(fpath, end=" ... ")
+            if ts is None:
+                print("Already stored, skipping")
+            else:
+                joblib.dump(ts, fpath)
+                print("Stored")
 
         
 # TODO Mapping from (subject, ses) to ts
