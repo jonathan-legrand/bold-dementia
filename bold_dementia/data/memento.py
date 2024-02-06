@@ -195,6 +195,9 @@ class Memento(torch.utils.data.Dataset):
         if not os.path.exists(self.cache_dir / "time_series"):
             os.makedirs(self.cache_dir / "time_series")
 
+        self.rest_dataset.to_csv(f"{self.cache_dir}/phenotypes.csv")
+        self._cache_metadata()
+
         parallel = Parallel(n_jobs=8, verbose=5, return_as="generator")
         calls = [delayed(self._parallel_fetch)(idx) for idx in self.rest_dataset.index]
         for fpath, ts in parallel(calls):
