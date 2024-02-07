@@ -5,7 +5,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from datetime import datetime
 import datetime
-from data.phenotypes import days_to_onset
+from data.phenotypes import days_to_onset, timedelta_to_years
 
 date_parser = lambda x: datetime.strptime(x, '%d %m %Y')
 
@@ -96,8 +96,6 @@ phenotypes["days_to_onset"] = days_to_onset(phenotypes.INCCONSDAT_D, phenotypes.
 # %%
 # %%
 
-def timedelta_to_years(td):
-    return td.days / 365
     
 phenotypes["age_of_onset"] = phenotypes["time_to_onset"].map(timedelta_to_years) + phenotypes.AGE_CONS
 # %%
