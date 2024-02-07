@@ -14,7 +14,7 @@ from nilearn.datasets import fetch_atlas_harvard_oxford
 from nilearn.maskers import NiftiMapsMasker, NiftiLabelsMasker
 from nilearn.interfaces.fmriprep import load_confounds
 
-from bold_dementia.data.phenotypes import days_to_onset
+from bold_dementia.data.phenotypes import days_to_onset, timedelta_to_years
 from bold_dementia.connectivity.atlases import Atlas
 
 session_mapping = {
@@ -69,8 +69,12 @@ class Memento(torch.utils.data.Dataset):
         )
         rest_dataset = rest_dataset.dropna(axis=0, subset="CEN_ANOM")
         current_scan = rest_dataset.apply(lambda row: row[row.ses], axis=1)
+        
+        tdelta = current_scan - rest_dataset["INCCONSDAT_D"]
+        rest_dataset["current_scan_age"] = tdelta.map(timedelta_to_years) + rest_dataset["AGE_CONS"]
+        
         rest_dataset["scan_to_onset"] = days_to_onset(current_scan, rest_dataset["DEMENCE_DAT"])
-        return rest_dataset.reset_index()
+        return rest_dataset.reset_index(drop=True)
         
     
     @staticmethod
