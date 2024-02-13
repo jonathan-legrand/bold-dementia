@@ -21,12 +21,12 @@ def compute_and_cache_ts(atlas):
         BIDSDIR,
         PPATH,
         atlas=atlas,
-        cache_dir="/georges/memento/BIDS/derivatives/harvard-oxford"
+        cache_dir="/georges/memento/BIDS/derivatives/AICHA"
     )
-    memento.parallel_caching()
+    memento.parallel_caching(n_jobs=16)
     
 
 # TODO Pass atlas and destination as argument to command line?
 if __name__ == "__main__":
-    atlas = Atlas.from_name("harvard-oxford", soft=False)
+    atlas = Atlas.from_name("AICHA", soft=False)
     compute_and_cache_ts(atlas)
