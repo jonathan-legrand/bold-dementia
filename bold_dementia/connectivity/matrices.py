@@ -1,7 +1,10 @@
-import matplotlib.pyplot as plt
-from nilearn import plotting
 import math
 import numpy as np
+
+from nilearn import plotting
+import matplotlib.pyplot as plt
+from matplotlib.ticker import FixedLocator
+import seaborn as sns
 
 def reshape_pvalues(pvalues):
     l = len(pvalues)
@@ -25,36 +28,64 @@ def reshape_pvalues(pvalues):
     return arr + arr.T
     
 
-def plot_matrices(cov, prec, title, labels):
-    """Plot covariance and precision matrices, for a given processing."""
+
+def plot_matrices(
+    cov, prec, title, labels, macro_labels=True, cov_bounds=(-1, 1), prec_bounds=None, cmap="seismic"
+    ):
+    """Plot covariance and precision matrices.
+    For macro labels only schaeffer and rsn41 have been tested so far
+    """
     prec = prec.copy()  # avoid side effects
+    cov = cov.copy()
 
     # Put zeros on the diagonal, for graph clarity.
     size = prec.shape[0]
     prec[list(range(size)), list(range(size))] = 0
-    #span = max(abs(prec.min()), abs(prec.max()))
-    span = 1
+    cov[list(range(size)), list(range(size))] = 0
 
-    # Display covariance matrix
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10, 10))
-    plotting.plot_matrix(
-        cov,
-        cmap=plotting.cm.bwr,
-        vmin=-1,
-        vmax=1,
-        title=f"{title} / covariance",
-        labels=labels,
-        axes=ax1
-    )
-    # Display precision matrix
-    plotting.plot_matrix(
-        prec,
-        cmap=plotting.cm.bwr,
-        vmin=-span,
-        vmax=span,
-        title=f"{title} / precision",
-        labels=labels,
-        axes=ax2
-    )
+    span = max(abs(prec.min()), abs(prec.max()))
+    if prec_bounds is None:
+        prec_bounds = (-span, span)
 
-    return fig
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(20, 10))
+
+    # We want network labels to span over several rows
+    if macro_labels:
+        networks = np.array(list(map(lambda x: str(x).split("_")[2], labels)))
+        n_regions = len(labels)
+        labels = None
+        sort_index = np.argsort(networks)
+        ticks = []
+        lbls = []
+        prev_label = None
+        for i, label in enumerate(networks[sort_index]):
+            if label != prev_label:
+                ticks.append(i)
+                lbls.append(label)
+                prev_label = label
+                ax1.hlines(i, 0, n_regions, colors="black", linestyles="dotted")
+                ax2.hlines(i, 0, n_regions, colors="black", linestyles="dotted")
+                ax1.vlines(i, 0, n_regions, colors="black", linestyles="dotted")
+                ax2.vlines(i, 0, n_regions, colors="black", linestyles="dotted")
+
+        ticks.append(i + 1)
+        
+    else:
+        sort_index = np.arange(len(prec))
+
+    sns.heatmap(cov[np.ix_(sort_index, sort_index)], ax=ax1, vmin=cov_bounds[0], vmax=cov_bounds[1], cmap=cmap)
+    sns.heatmap(prec[np.ix_(sort_index, sort_index)], ax=ax2, cmap=cmap, vmin=prec_bounds[0], vmax=prec_bounds[1])
+
+    if macro_labels:
+        ax1.yaxis.set_minor_locator(FixedLocator(ticks))
+        ax1.yaxis.set_major_locator(FixedLocator([(t0 + t1) / 2 for t0, t1 in zip(ticks[:-1], ticks[1:])]))
+        ax1.xaxis.set_major_locator(FixedLocator([(t0 + t1) / 2 for t0, t1 in zip(ticks[:-1], ticks[1:])]))
+        ax1.set_yticklabels(lbls, rotation=0)
+        ax1.set_xticklabels(lbls, rotation=30)
+    
+    ax1.set_title("covariance")
+    ax2.set_title("precision")
+    fig.suptitle(title)
+    fig.tight_layout()
+
+    return fig, ax1, ax2
