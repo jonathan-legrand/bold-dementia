@@ -135,4 +135,9 @@ class Atlas(Bunch):
             return self.labels_.difumo_names.to_list()
         else:
             return self.labels_
+
+    @property
+    def macro_labels(self):
+        l = self.labels
+        return list(map(lambda x: str(x).split("_")[2], l))
             
