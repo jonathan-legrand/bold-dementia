@@ -36,7 +36,8 @@ def plot_matrix(
 
     Args:
         mat (_type_): _description_
-        atlas (_type_): _description_
+        atlas (Bunch): sklearn bunch containing labels and
+        macro labels id macro_labels is True
         macro_labels (bool, optional): _description_. Defaults to True.
         bounds (_type_, optional): _description_. Defaults to None.
         cmap (str, optional): _description_. Defaults to "seismic".
