@@ -28,6 +28,70 @@ def reshape_pvalues(pvalues):
     return arr + arr.T
     
 
+def plot_matrix(
+    mat, atlas, macro_labels=True, bounds=None, cmap="seismic"
+):
+    """Simplified version of the plot_matrices function. Only displays
+    a single matrix.
+
+    Args:
+        mat (_type_): _description_
+        atlas (_type_): _description_
+        macro_labels (bool, optional): _description_. Defaults to True.
+        bounds (_type_, optional): _description_. Defaults to None.
+        cmap (str, optional): _description_. Defaults to "seismic".
+
+    """
+    mat = mat.copy()
+    n_regions = mat.shape[0]
+    mat[list(range(n_regions)), list(range(n_regions))] = 0
+    
+    # In general we want a colormap that is symmetric around 0
+    span = max(abs(mat.min()), abs(mat.max()))
+    if bounds is None:
+        bounds = (-span, span)
+
+    fig, ax = plt.subplots(1, 1, figsize=(8, 6))
+
+    if macro_labels:
+        networks = np.array(atlas.macro_labels)
+
+        sort_index = np.argsort(networks)
+        ticks = []
+        lbls = []
+        prev_label = None
+        for i, label in enumerate(networks[sort_index]):
+            if label != prev_label:
+                ticks.append(i)
+                lbls.append(label)
+                prev_label = label
+                ax.hlines(i, 0, n_regions, colors="black", linestyles="dotted")
+                ax.vlines(i, 0, n_regions, colors="black", linestyles="dotted")
+
+        ticks.append(i + 1)
+        
+    else:
+        sort_index = np.arange(n_regions)
+    
+    sns.heatmap(
+        mat[np.ix_(sort_index, sort_index)],
+        ax=ax,
+        vmin=bounds[0],
+        vmax=bounds[1],
+        cmap=cmap
+    )
+
+    if macro_labels:
+        ax.yaxis.set_minor_locator(FixedLocator(ticks))
+        ax.yaxis.set_major_locator(FixedLocator([(t0 + t1) / 2 for t0, t1 in zip(ticks[:-1], ticks[1:])]))
+        ax.xaxis.set_major_locator(FixedLocator([(t0 + t1) / 2 for t0, t1 in zip(ticks[:-1], ticks[1:])]))
+        ax.set_yticklabels(lbls, rotation=0)
+        ax.set_xticklabels(lbls, rotation=30)
+
+    fig.tight_layout()
+    return fig
+
+
 
 def plot_matrices(
     cov, prec, title, labels, macro_labels=True, cov_bounds=(-1, 1), prec_bounds=None, cmap="seismic"
