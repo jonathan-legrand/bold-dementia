@@ -8,6 +8,7 @@ import nibabel as nib
 import joblib
 import os
 import json
+import math
 
 from nilearn.interfaces.bids import get_bids_files, parse_bids_filename
 from nilearn.datasets import fetch_atlas_harvard_oxford
@@ -29,6 +30,8 @@ memory = Memory("/tmp/Memento/dataset_cache")
 def past_diag(row):
     return row.scan_to_onset <= 0
 
+def healthy_control(row):
+    return math.isnan(row.scan_to_onset)
 
 # TODO Type annotations
 # TODO Custom target func like MementoTS

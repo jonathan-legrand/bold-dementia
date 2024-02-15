@@ -3,6 +3,7 @@ data_dir: /homes_unix/jlegrand/data/Memento
 bids_dir: "/georges/memento/BIDS"
 raw_phenotypes: "/bigdata/jlegrand/data/Memento/phenotypes.tsv"
 augmented_phenotypes: "/bigdata/jlegrand/data/Memento/output/augmented_phenotypes.csv"
+connectivity_matrices: "/homes_unix/jlegrand/data/Memento/output/connectivity"
 
 #FMRI
 confounds_strategy:
