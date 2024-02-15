@@ -1,6 +1,11 @@
-#INITIAL SETTINGS
+#DATA PATH
 data_dir: /homes_unix/jlegrand/data/Memento
 bids_dir: "/georges/memento/BIDS"
 raw_phenotypes: "/bigdata/jlegrand/data/Memento/phenotypes.tsv"
 augmented_phenotypes: "/bigdata/jlegrand/data/Memento/output/augmented_phenotypes.csv"
 
+#FMRI
+confounds_strategy:
+  strategy: ["high_pass", "motion", "wm_csf"]
+  motion: "basic"
+  wm_csf: "basic"
