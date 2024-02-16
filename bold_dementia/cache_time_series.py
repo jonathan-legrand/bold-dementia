@@ -25,10 +25,10 @@ def compute_and_cache_ts(atlas):
         atlas=atlas,
         cache_dir=BIDSDIR / "derivatives" / atlas.name
     )
-    memento.parallel_caching(n_jobs=16)
+    memento.parallel_caching(n_jobs=2)
     
 
 # TODO Pass atlas (and destination?) as argument to command line
 if __name__ == "__main__":
-    atlas = Atlas.from_name("AICHA", soft=False)
+    atlas = Atlas.from_name("msdl", soft=True)
     compute_and_cache_ts(atlas)
