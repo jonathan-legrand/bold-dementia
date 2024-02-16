@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-def fast_hist(matrix:np.ndarray):
+def fast_hist(matrix:np.ndarray, **plot_kwargs):
     """Plot values of arrays containing
     individuals correlations
 
@@ -16,6 +16,6 @@ def fast_hist(matrix:np.ndarray):
     # Passing the array is slower
     for i in range(n_subjects):
         tst = matrix[i, :, :].reshape((n_regions ** 2))
-        ax.hist(tst, histtype="step")
+        ax.hist(tst, histtype="step", **plot_kwargs)
     ax.set_xlim(-1, 1)
     return fig, ax
