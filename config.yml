@@ -1,5 +1,6 @@
 #DATA PATH
 data_dir: /homes_unix/jlegrand/data/Memento
+output_dir: /homes_unix/jlegrand/data/Memento/output
 bids_dir: "/georges/memento/BIDS"
 raw_phenotypes: "/bigdata/jlegrand/data/Memento/phenotypes.tsv"
 augmented_phenotypes: "/bigdata/jlegrand/data/Memento/output/augmented_phenotypes.csv"
