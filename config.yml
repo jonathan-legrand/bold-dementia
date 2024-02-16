@@ -6,8 +6,9 @@ raw_phenotypes: "/bigdata/jlegrand/data/Memento/phenotypes.tsv"
 augmented_phenotypes: "/bigdata/jlegrand/data/Memento/output/augmented_phenotypes.csv"
 connectivity_matrices: "/homes_unix/jlegrand/data/Memento/output/connectivity"
 
-#FMRI
+#FMRI STUDY PARAMETERS
 confounds_strategy:
   strategy: ["high_pass", "motion", "wm_csf"]
   motion: "basic"
   wm_csf: "basic"
+alpha: 0.05
