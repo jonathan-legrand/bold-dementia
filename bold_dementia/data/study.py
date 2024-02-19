@@ -9,13 +9,32 @@ def make_control_idx(target: DataFrame, control: DataFrame) -> list:
     return subset.index.to_list()
     
 
-def balance_control(pos, control, col_name, tol=1):
+def balance_control(
+    pos:DataFrame,
+    control:DataFrame,
+    col_name:str,
+    tol:float=1,
+):
+    """Balance control with pos on the quantitative variable named col_name
+
+    Args:
+        pos (DataFrame): _description_
+        control (DataFrame): _description_
+        col_name (str): _description_
+        tol (float, optional): _description_. Defaults to 1.
+
+    Raises:
+        ValueError: _description_
+
+    Returns:
+        _type_: _description_
+    """
     gap = pos[col_name].mean() - control[col_name].mean()
     # Usually the age is lower in control group
     counter = 0
     while gap > tol:
         counter += 1
-        print(f"#{counter}, removed age = ", end=" ")
+        print(f"#{counter}, removed {col_name} = ", end=" ")
         idx_to_drop = control[col_name].idxmin()
         print(control.loc[idx_to_drop, col_name], end=", new gap = ")
         control = control.drop(idx_to_drop)
