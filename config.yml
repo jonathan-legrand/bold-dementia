@@ -12,3 +12,7 @@ confounds_strategy:
   motion: "basic"
   wm_csf: "basic"
 alpha: 0.05
+
+#TESTS
+seed: 1234
+age_tol: 1
