@@ -7,7 +7,55 @@ from nilearn.interfaces.fmriprep import load_confounds
 def make_control_idx(target: DataFrame, control: DataFrame) -> list:
     subset = control.sample(n=len(target), replace=False)
     return subset.index.to_list()
-    
+
+def p(s: pd.Series)->float:
+    """
+
+    Args:
+        s (pd.Series): Series with two categories
+
+    Returns:
+        float: Proportion of most frequent variable
+    """
+    vc = s.value_counts(sort=True) / len(s)
+    return vc.index[0], vc.values[0]
+
+
+# TODO Abstract further, the two following functions are doing
+# the same thing
+def balance_control_cat(
+    pos:DataFrame,
+    control:DataFrame,
+    col_name:str,
+    tol:float=0.1,
+):
+    def gap_func(pos, control):
+        value, target_p = p(pos[col_name])
+        _, control_p = p(control[col_name])
+        return target_p - control_p, value
+
+    gap, value = gap_func(pos, control)
+    counter = 0
+    while abs(gap) > tol:
+        counter += 1
+
+        mask = (control[col_name] != value)
+        
+        idx_to_drop = control[mask].sample(n=1, random_state=1234).index[0]
+        print(control.loc[idx_to_drop, col_name], end=", new gap = ")
+            
+        control = control.drop(idx_to_drop)
+        
+
+        if len(control) <= len(pos):
+            raise ValueError("Removed too many subjects from control")
+        
+        gap, value = gap_func(pos, control)
+
+        print(gap, end=", ")
+        print(f"{len(control)} controls left")
+
+    return pos, control 
 
 # Turn into dispatcher
 def balance_control(

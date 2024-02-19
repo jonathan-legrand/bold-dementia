@@ -16,3 +16,4 @@ alpha: 0.05
 #TESTS
 seed: 1234
 age_tol: 1
+sex_prop_tol: 0.1

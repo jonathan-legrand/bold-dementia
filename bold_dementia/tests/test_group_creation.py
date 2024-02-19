@@ -2,7 +2,7 @@ import pytest
 import numpy as np
 import pandas as pd
 from bold_dementia import get_config
-from bold_dementia.data.study import balance_control
+from bold_dementia.data.study import balance_control, balance_control_cat
 config = get_config()
 
 @pytest.fixture
@@ -37,5 +37,24 @@ def test_older_control(rng):
     
     assert abs(new_control.age.mean() - AD.age.mean()) < config["age_tol"] 
 
-    
-    
+def test_remove_females(rng):
+    control = make_df(80, scale=10, p_female=0.70, size=1000, rng=rng)
+    AD = make_df(70, scale=10, p_female=0.50, size=100, rng=rng)
+
+    def female_prop(s):
+        return (s.value_counts() / len(s)).values[0]
+
+    _, new_control = balance_control_cat(AD, control, "sex", tol=config["sex_prop_tol"])
+
+    assert abs(female_prop(new_control.sex) - female_prop(AD.sex)) < config["sex_prop_tol"]
+
+def test_remove_males(rng):
+    control = make_df(80, scale=10, p_female=0.30, size=1000, rng=rng)
+    AD = make_df(70, scale=10, p_female=0.60, size=100, rng=rng)
+
+    def female_prop(s):
+        return (s.value_counts() / len(s)).values[0]
+
+    _, new_control = balance_control_cat(AD, control, "sex", tol=config["sex_prop_tol"])
+
+    assert abs(female_prop(new_control.sex) - female_prop(AD.sex)) < config["sex_prop_tol"]
