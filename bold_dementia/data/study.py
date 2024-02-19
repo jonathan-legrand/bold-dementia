@@ -17,8 +17,9 @@ def p(s: pd.Series)->float:
     Returns:
         float: Proportion of most frequent variable
     """
-    vc = s.value_counts(sort=True) / len(s)
-    return vc.index[0], vc.values[0]
+    # Hard coded hack because sex is the only thing we need
+    prop = s.value_counts()["Féminin"] / len(s)
+    return "Féminin", prop
 
 
 # TODO Abstract further, the two following functions are doing
@@ -39,14 +40,16 @@ def balance_control_cat(
     while abs(gap) > tol:
         counter += 1
 
-        mask = (control[col_name] != value)
+        if gap > 0:
+            mask = (control[col_name] != value)
+        else:
+            mask = (control[col_name] == value)
         
         idx_to_drop = control[mask].sample(n=1, random_state=1234).index[0]
         print(control.loc[idx_to_drop, col_name], end=", new gap = ")
             
         control = control.drop(idx_to_drop)
         
-
         if len(control) <= len(pos):
             raise ValueError("Removed too many subjects from control")
         
