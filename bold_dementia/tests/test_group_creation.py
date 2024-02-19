@@ -31,10 +31,11 @@ def test_younger_control(rng):
     assert abs(new_control.age.mean() - AD.age.mean()) < config["age_tol"]
 
 def test_older_control(rng):
-    
     control = make_df(80, scale=10, p_female=0.70, size=1000, rng=rng)
     AD = make_df(70, scale=10, p_female=0.50, size=100, rng=rng)
-    
     _, new_control = balance_control(AD, control, "age", tol=config["age_tol"])
     
     assert abs(new_control.age.mean() - AD.age.mean()) < config["age_tol"] 
+
+    
+    

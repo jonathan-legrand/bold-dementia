@@ -9,6 +9,7 @@ def make_control_idx(target: DataFrame, control: DataFrame) -> list:
     return subset.index.to_list()
     
 
+# Turn into dispatcher
 def balance_control(
     pos:DataFrame,
     control:DataFrame,
@@ -32,10 +33,15 @@ def balance_control(
     gap = pos[col_name].mean() - control[col_name].mean()
     # Usually the age is lower in control group
     counter = 0
-    while gap > tol:
+    while abs(gap) > tol:
         counter += 1
         print(f"#{counter}, removed {col_name} = ", end=" ")
-        idx_to_drop = control[col_name].idxmin()
+        
+        if gap > 0:
+            idx_to_drop = control[col_name].idxmin()
+        else:
+            idx_to_drop = control[col_name].idxmax()
+            
         print(control.loc[idx_to_drop, col_name], end=", new gap = ")
         control = control.drop(idx_to_drop)
         
