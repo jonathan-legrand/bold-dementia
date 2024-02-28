@@ -6,10 +6,9 @@ import matplotlib.pyplot as plt
 from matplotlib.ticker import FixedLocator
 import seaborn as sns
 from itertools import combinations
+import math
 
-def reshape_pvalues(pvalues):
-    l = len(pvalues)
-    
+def compute_mat_size(l):
     # Mat size is the positive root of :
     # n**2 - n - 2l = 0 
     # Where l is the length of pvalues array
@@ -17,7 +16,17 @@ def reshape_pvalues(pvalues):
     n = (1 + math.sqrt(1 + 8 * l)) / 2
     if n != int(n):
         raise ValueError(f"Array of lenght {l} cannot be reshaped as a square matrix")
-    n = int(n)
+    return int(n)
+    
+
+def vec_idx_to_mat_idx(l):
+    n = compute_mat_size(l)
+    return np.tril_indices(n, k=-1)
+    
+
+def reshape_pvalues(pvalues):
+    l = len(pvalues)
+    n = compute_mat_size(l)
     
     arr = np.zeros((n, n))
     pointer = 0
@@ -161,3 +170,43 @@ def network_to_network_connectivity(matrix, network_to_idx):
         loc_a, loc_b = network_to_idx[network_a], network_to_idx[network_b]
         connectivity = matrix[loc_a, loc_b].mean()
         yield network_a, network_b, connectivity
+
+def plot_ordered_matrix(
+    mat, atlas, bounds=None, cmap="seismic",
+):
+    """Simplified version of the plot_matrices function. Only displays
+    a single matrix.
+
+    Args:
+        mat (_type_): _description_
+        atlas (Bunch): sklearn bunch containing labels and
+        macro labels id macro_labels is True
+        macro_labels (bool, optional): _description_. Defaults to True.
+        bounds (_type_, optional): _description_. Defaults to None.
+        cmap (str, optional): _description_. Defaults to "seismic".
+
+    """
+    mat = mat.copy()
+    n_regions = mat.shape[0]
+    mat[list(range(n_regions)), list(range(n_regions))] = 0
+    
+    # In general we want a colormap that is symmetric around 0
+    span = max(abs(mat.min()), abs(mat.max()))
+    if bounds is None:
+        bounds = (-span, span)
+
+    fig, ax = plt.subplots(1, 1, figsize=(8, 6))
+
+    sns.heatmap(
+        mat,
+        ax=ax,
+        vmin=bounds[0],
+        vmax=bounds[1],
+        cmap=cmap,
+        xticklabels=atlas.labels,
+        yticklabels=atlas.labels
+    )
+
+
+    fig.tight_layout()
+    return fig
