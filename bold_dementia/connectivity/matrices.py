@@ -178,7 +178,6 @@ def network_to_network_connectivity(matrix, network_to_idx):
     """
     for network_a, network_b in combinations(network_to_idx.index, 2):
         loc_a, loc_b = network_to_idx[network_a], network_to_idx[network_b]
-        # FIXME This can't be right
         connectivity = matrix[loc_a[0]:loc_a[1], loc_b[0]:loc_b[1]].mean()
         yield network_a, network_b, connectivity
 
