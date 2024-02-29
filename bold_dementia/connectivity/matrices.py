@@ -166,9 +166,20 @@ def plot_matrices(
     return fig, ax1, ax2
 
 def network_to_network_connectivity(matrix, network_to_idx):
+    """
+
+    Args:
+        matrix (_type_): Matrix should have the block structure 
+        described in network_to_idx!
+        network_to_idx (_type_): _description_
+
+    Yields:
+        _type_: _description_
+    """
     for network_a, network_b in combinations(network_to_idx.index, 2):
         loc_a, loc_b = network_to_idx[network_a], network_to_idx[network_b]
-        connectivity = matrix[loc_a, loc_b].mean()
+        # FIXME This can't be right
+        connectivity = matrix[loc_a[0]:loc_a[1], loc_b[0]:loc_b[1]].mean()
         yield network_a, network_b, connectivity
 
 def plot_ordered_matrix(
@@ -210,3 +221,21 @@ def plot_ordered_matrix(
 
     fig.tight_layout()
     return fig
+
+
+def group_by_networks(macro_labels):
+    networks = np.array(macro_labels)
+    sort_index = np.argsort(networks)
+
+    ticks = []
+    lbls = []
+    prev_label = None
+    for i, label in enumerate(networks[sort_index]):
+        if label != prev_label:
+            print(label)
+            ticks.append(i)
+            lbls.append(label)
+            prev_label = label
+
+    ticks.append(i+1)
+    return ticks, sort_index
