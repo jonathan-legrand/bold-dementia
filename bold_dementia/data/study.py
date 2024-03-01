@@ -112,6 +112,7 @@ def load_signals(dataset, is_pos_func, is_neg_func, clean_signal=False, confound
     pos_meta = []
     neg_meta = []
     for ts, row, fpath in iter(dataset):
+        print(f"Processing {fpath}")
         if clean_signal:
             confounds, sample_mask = load_confounds(
                 fpath, **confounds_strategy

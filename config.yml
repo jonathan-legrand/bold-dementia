@@ -13,6 +13,18 @@ confounds_strategy:
   wm_csf: "basic"
 alpha: 0.05
 
+# COMPARE MAPS DEFAULT RUN
+default_run:
+  confounds_strategy:
+    strategy: ["high_pass", "motion", "wm_csf"]
+  SOFT: False
+  ATLAS: "schaeffer200"
+  CLEAN_SIGNAL: True
+  MACRO_LABELS: True
+  PREFIX: "DEBUG"
+  BALANCE_STRAT: []
+
+
 #TESTS
 seed: 1234
 age_tol: 1
