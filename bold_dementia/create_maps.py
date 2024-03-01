@@ -47,7 +47,7 @@ def compute_cov_prec(time_series):
     )
 
 
-def save_run(save_func: Callable, save_mapping: dict) -> Path:
+def save_run(run_name: str, save_func: Callable, save_mapping: dict) -> Path:
     """Save current run object and parameters
 
     Args:
@@ -59,7 +59,7 @@ def save_run(save_func: Callable, save_mapping: dict) -> Path:
         Path: path of the folder containing all the saved objects
     """
 
-    name = f"atlas-{run_config['ATLAS']}_{run_config['PREFIX']}"
+    name = f"atlas-{run_config['ATLAS']}_{run_config['PREFIX']}_{run_name}"
     #for k, v in run_config.items():
     #    name += "_"
     #    if isinstance(v, list):
@@ -79,7 +79,7 @@ def save_run(save_func: Callable, save_mapping: dict) -> Path:
 
     return experience_path
 
-def create_maps():
+def create_maps(run_name):
     atlas = Atlas.from_name(
         run_config["ATLAS"],
         run_config["SOFT"]
@@ -130,12 +130,17 @@ def create_maps():
         "control_series_ub.csv": nm,
     }
 
-    save_run(joblib.dump, joblib_export)
-    save_run(lambda df, fname: df.to_csv(fname), csv_export)
+    save_run(run_name, joblib.dump, joblib_export)
+    save_run(run_name, lambda df, fname: df.to_csv(fname), csv_export)
 
+import sys
 
 if __name__ == "__main__":
-    create_maps()
+    try:
+        run_name = sys.argv[1]
+    except IndexError:
+        run_name = "default"
+    create_maps(run_name)
 
 
 

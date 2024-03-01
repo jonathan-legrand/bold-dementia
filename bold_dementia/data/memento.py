@@ -36,6 +36,9 @@ def past_diag(row):
 def healthy_control(row):
     return math.isnan(row.scan_to_onset)
 
+def non_demented(row):
+    return row.scan_to_onset < 0
+
 # TODO Type annotations
 # TODO Custom target func like MementoTS
 class Memento(torch.utils.data.Dataset):
