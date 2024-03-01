@@ -17,6 +17,7 @@ alpha: 0.05
 default_run:
   confounds_strategy:
     strategy: ["high_pass", "motion", "wm_csf"]
+    wm_csf: "full"
   SOFT: False
   ATLAS: "schaeffer200"
   CLEAN_SIGNAL: True
