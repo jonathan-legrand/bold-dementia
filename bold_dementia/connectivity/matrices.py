@@ -238,3 +238,18 @@ def group_by_networks(macro_labels):
 
     ticks.append(i+1)
     return ticks, sort_index
+
+def mat_to_vec(mat):
+    n = len(mat)
+    tril_i = np.tril_indices(n, k=-1)
+    flat_mat = mat[tril_i].ravel()
+    return flat_mat
+
+def z_transform_mat(mat):
+    flat_mat = mat_to_vec(mat)
+    z_transformed = np.arctanh(flat_mat)
+    return reshape_pvalues(z_transformed)
+
+def z_transform_to_vec(mat):
+    vec = mat_to_vec(mat)
+    return np.arctanh(vec)
