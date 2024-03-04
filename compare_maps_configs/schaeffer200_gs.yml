@@ -1,0 +1,10 @@
+# COMPARE MAPS DEFAULT RUN
+confounds_strategy:
+  strategy: ["high_pass", "motion", "wm_csf", "global_signal"]
+  global_signal: "derivatives"
+SOFT: False
+ATLAS: "schaeffer200"
+CLEAN_SIGNAL: True
+MACRO_LABELS: True
+NAME: "gs-removed"
+BALANCE_STRAT: []

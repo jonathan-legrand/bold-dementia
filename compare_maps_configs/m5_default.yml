@@ -1,0 +1,10 @@
+# COMPARE MAPS DEFAULT RUN
+confounds_strategy:
+  strategy: ["high_pass", "motion", "wm_csf"]
+  wm_csf: "full"
+SOFT: False
+ATLAS: "rsn41"
+CLEAN_SIGNAL: True
+MACRO_LABELS: True
+NAME: "default-m5"
+BALANCE_STRAT: []
