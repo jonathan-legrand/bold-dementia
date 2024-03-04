@@ -26,12 +26,11 @@ from bold_dementia.data.study import balance_control, balance_control_cat, load_
 from bold_dementia.data.memento import Memento, MementoTS, past_diag_AD, healthy_control
 from bold_dementia.connectivity.atlases import Atlas
 from bold_dementia.connectivity.matrices import plot_matrices, reshape_pvalues
-from bold_dementia import get_config
+from bold_dementia import get_config, get_custom_config
 
-config = get_config()
 
 # TODO Add possibility to override default conf
-run_config = config["default_run"]
+config = get_config()
 
 def compute_cov_prec(time_series):
 
@@ -47,7 +46,7 @@ def compute_cov_prec(time_series):
     )
 
 
-def save_run(run_name: str, save_func: Callable, save_mapping: dict) -> Path:
+def save_run(run_config: str, save_func: Callable, save_mapping: dict) -> Path:
     """Save current run object and parameters
 
     Args:
@@ -59,12 +58,7 @@ def save_run(run_name: str, save_func: Callable, save_mapping: dict) -> Path:
         Path: path of the folder containing all the saved objects
     """
 
-    name = f"atlas-{run_config['ATLAS']}_{run_config['PREFIX']}_{run_name}"
-    #for k, v in run_config.items():
-    #    name += "_"
-    #    if isinstance(v, list):
-    #        v = '-'.join(v)
-    #    name += f"{k}-{v}"
+    name = f"atlas-{run_config['ATLAS']}_{run_config['NAME']}"
 
     experience_path = Path(config["connectivity_matrices"]) / name
 
@@ -79,7 +73,7 @@ def save_run(run_name: str, save_func: Callable, save_mapping: dict) -> Path:
 
     return experience_path
 
-def create_maps(run_name):
+def create_maps(run_config):
     atlas = Atlas.from_name(
         run_config["ATLAS"],
         run_config["SOFT"]
@@ -130,17 +124,21 @@ def create_maps(run_name):
         "control_series_ub.csv": nm,
     }
 
-    save_run(run_name, joblib.dump, joblib_export)
-    save_run(run_name, lambda df, fname: df.to_csv(fname), csv_export)
+    save_run(run_config, joblib.dump, joblib_export)
+    save_run(run_config, lambda df, fname: df.to_csv(fname), csv_export)
 
 import sys
 
 if __name__ == "__main__":
     try:
-        run_name = sys.argv[1]
+        run_config = get_custom_config(sys.argv[1])
+        print("Loaded custom config :")
     except IndexError:
-        run_name = "default"
-    create_maps(run_name)
+        run_config = config["default_run"]
+        print("No config path provided, using default :")
+    print(run_config)
+    
+    create_maps(run_config)
 
 
 
