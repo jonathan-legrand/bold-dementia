@@ -26,7 +26,8 @@ from bold_dementia.data.study import balance_control, balance_control_cat, load_
 from bold_dementia.data.memento import Memento, MementoTS, past_diag_AD, healthy_control
 from bold_dementia.connectivity.atlases import Atlas
 from bold_dementia.connectivity.matrices import plot_matrices, reshape_pvalues
-from bold_dementia import get_config, get_custom_config
+from bold_dementia import get_config
+from bold_dementia.utils.saving import save_run
 
 
 # TODO Add possibility to override default conf
@@ -44,34 +45,6 @@ def compute_cov_prec(time_series):
         covariances_=c,
         precisions_=npl.inv(c) # I don't like this
     )
-
-
-def save_run(run_config: str, save_func: Callable, save_mapping: dict) -> Path:
-    """Save current run object and parameters
-
-    Args:
-        save_func (Callable): dedicated func which takes (obj, path) 
-        as paramaters, to save the python objects in save mapping
-        save_mapping (dict): Map between fname and python object
-
-    Returns:
-        Path: path of the folder containing all the saved objects
-    """
-
-    name = f"atlas-{run_config['ATLAS']}_{run_config['NAME']}"
-
-    experience_path = Path(config["connectivity_matrices"]) / name
-
-    if not os.path.exists(experience_path):
-        os.makedirs(experience_path)
-
-    with open(experience_path / "parameters.json", "w") as stream:
-        json.dump(run_config, stream)
-
-    for fname, obj in save_mapping.items():
-        save_func(obj, experience_path / fname)
-
-    return experience_path
 
 def create_maps(run_config):
     atlas = Atlas.from_name(
@@ -125,20 +98,22 @@ def create_maps(run_config):
     }
 
     save_run(run_config, joblib.dump, joblib_export)
-    save_run(run_config, lambda df, fname: df.to_csv(fname), csv_export)
+    exppath = save_run(run_config, lambda df, fname: df.to_csv(fname), csv_export)
+    return exppath
 
 import sys
 
 if __name__ == "__main__":
     try:
-        run_config = get_custom_config(sys.argv[1])
+        run_config = get_config(sys.argv[1])
         print("Loaded custom config :")
     except IndexError:
         run_config = config["default_run"]
         print("No config path provided, using default :")
     print(run_config)
     
-    create_maps(run_config)
+    p = create_maps(run_config)
+    print(f"Saved output in {p}")
 
 
 
