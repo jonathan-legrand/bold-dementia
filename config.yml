@@ -22,7 +22,7 @@ default_run:
   ATLAS: "schaeffer200"
   CLEAN_SIGNAL: True
   MACRO_LABELS: True
-  PREFIX: "DEBUG"
+  PREFIX: "default"
   BALANCE_STRAT: []
 
 
