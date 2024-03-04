@@ -1,1 +1,1 @@
-from .utils.configuration import get_config, get_custom_config
+from .utils.configuration import get_config
