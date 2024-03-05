@@ -43,18 +43,22 @@ if __name__ =="__main__":
     networks = np.array(labels)
     maps = nib.load(atlas.maps)
     img = maps.get_fdata()
+
+    if is_soft:
+        output_img = img
+    else:
+        for network in unique(labels):
+
+            network_colors = list(np.where(networks == network)[0])
+
+            print(f"{network} : {len(network_colors)} regions")
     
-    for network in unique(labels):
-        
-        network_colors = list(np.where(networks == network)[0])
-        
-        print(f"{network} : {len(network_colors)} regions")
+            network_img = np.where(np.isin(img, network_colors), 1., 0.)
+            bg_mask = np.where(img == 0, 0, 1)
+            network_images.append(network_img * bg_mask)
     
-        network_img = np.where(np.isin(img, network_colors), 1., 0.)
-        bg_mask = np.where(img == 0, 0, 1)
-        network_images.append(network_img * bg_mask)
-    
-    output_img = np.stack(network_images, axis=-1)
+        output_img = np.stack(network_images, axis=-1)
+
     network_maps = nib.Nifti1Image(output_img, maps.affine)
     nib.save(network_maps, output_path)
     
