@@ -46,6 +46,10 @@ def make_fc_data(maps_path):
     df["AD"] = np.where(df.scan_to_onset < 0, 1, 0)
     df = pd.concat([df.reset_index(drop=True), fc], axis=1, join="inner")
     df = df.drop(df[df.MA == 0].index) # Drop MA == 0
+
+    if parameters["LONGITUDINAL"] is False:
+        df = df.groupby("sub").sample(n=1, random_state=config["seed"])
+        print(df.head())
     
     return df, edges, parameters
 
@@ -53,20 +57,23 @@ def make_fc_data(maps_path):
 def run_test(df, edges):
     test_df = df.dropna(subset=["NIVETUD"])
     fit_df = lambda edge: fit_edges(edge, test_df)
-    parallel = Parallel(n_jobs=12, verbose=2)
-    test_results = parallel(delayed(fit_df)(edge) for edge in edges)
+    parallel = Parallel(n_jobs=2, verbose=2)
+    # TODO This is awfully slow
+    # Change optimizer in statsmodel perhaps?
+    with warnings.catch_warnings(category=ConvergenceWarning, action="ignore"):
+        test_results = parallel(delayed(fit_df)(edge) for edge in edges)
     return test_results
 
     
+import os
+os.environ['PYTHONWARNINGS']='ignore::ConvergenceWarning'
+
 def main():
     maps_path = Path(sys.argv[1])
     df, edges, parameters = make_fc_data(maps_path)
 
-    with warnings.catch_warnings(category=ConvergenceWarning, action="ignore"):
-        results = run_test(df, edges)
-
+    results = run_test(df, edges)
     stats, pvalues = zip(*results)
-        
     _, pvalues_corr = fdrcorrection(pvalues)
 
     statmat = reshape_pvalues(stats)
@@ -75,7 +82,7 @@ def main():
         "statmap.joblib": statmat,
         "pmat.joblib": pmat
     }
-    save_run(parameters, joblib.save, matrix_export)
+    save_run(parameters, joblib.dump, matrix_export)
     
 
 if __name__ == "__main__":
