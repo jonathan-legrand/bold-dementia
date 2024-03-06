@@ -49,6 +49,7 @@ class Memento(torch.utils.data.Dataset):
         atlas:Atlas=None,
         cache_dir="dataset_cache",
         clean_signal=False,
+        augmented_phenotypes=True,
         **confounds_kw
     ):
         
@@ -58,7 +59,9 @@ class Memento(torch.utils.data.Dataset):
         self.masker = atlas.fit_masker()
 
         self.scans_ = self.index_bids(bids_path)
-        self.phenotypes_ = self.load_phenotypes(phenotypes_path)
+        self.phenotypes_ = self.load_phenotypes(
+            phenotypes_path, augmented=augmented_phenotypes
+        )
         self.rest_dataset = self.make_rest_dataset(self.scans_, self.phenotypes_)
         
 
@@ -87,8 +90,16 @@ class Memento(torch.utils.data.Dataset):
         
     
     @staticmethod
-    def load_phenotypes(ppath, augmented=True):
-        if augmented:
+    def load_phenotypes(ppath, merged=False, augmented=True):
+        # No more cases please
+        if merged:
+            phenotypes = pd.read_csv(
+                ppath,
+                index_col=0
+            )
+            format = "%d/%m/%Y"
+            
+        elif augmented:
             phenotypes = pd.read_csv(
                 ppath,
                 index_col=0
