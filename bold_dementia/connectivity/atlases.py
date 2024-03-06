@@ -1,22 +1,90 @@
 from sklearn.utils import Bunch
 from nilearn import plotting
 from nilearn.maskers import NiftiMapsMasker, NiftiLabelsMasker
+from pathlib import Path
 
 
 import xml.etree.ElementTree as ET
 import matplotlib.pyplot as plt
 from nilearn import datasets
 import pandas as pd
+import nibabel as nib
+import numpy as np
+
+from bold_dementia import get_config
+
+# TODO This is just a quick fix
+config = {
+    "custom_atlases": "/homes_unix/jlegrand/data/Memento/atlas"
+}
+
+def fetch_atlas_m5n33(
+    atlas_csv=f"{config['custom_atlases']}/RSN_N33/flat_m5n33.csv",
+    atlas_path=f"{config['custom_atlases']}/RSN_N33/flat_m5n33.nii.gz"
+):
+    if (Path(atlas_path).exists() and Path(atlas_csv).exists()) is False:
+        print("Creating flat atlas from RSN33")
+        _create_m5n33()
+        print("Done")
+
+    df = pd.read_csv(atlas_csv)
+    atlas_bunch = Bunch(
+        maps=atlas_path,
+        labels=df.RSN.to_list(),
+        networks=df.Labels.to_list(), # Shitty choice of names I know
+        description="Experimental atlas of resting state networks"
+    )
+    return atlas_bunch
+        
+
+def _create_m5n33(atlas_path=Path(f"{config['custom_atlases']}/RSN_N33/RSN_Cog33_NoOverlap.nii")):
+    """This has only been called once to create the 3D version of RSN_N33
+
+    Args:
+        atlas_path (_type_, optional): _description_. Defaults to Path(f"{config['custom_atlases']}/RSN_N33/RSN_Cog33_NoOverlap.nii").
+
+    Returns:
+        _type_: _description_
+    """
+    
+    img = nib.load(atlas_path)
+    
+    # We are going to be VERY specific about using
+    # int32 because lots of neuroimaging softwares dislike int64
+    # which is numpy's default.
+    flat_m5 = np.zeros(img.shape[:3], dtype=np.int32)
+    
+    for network_idx in range(img.shape[-1]):
+        network_mask = img.slicer[..., network_idx].get_fdata()
+        network_mask = np.where(network_mask !=0, network_idx + 1, 0) # Value 0 is for background
+        flat_m5 += network_mask.astype(np.int32)
+
+
+    mapping = pd.read_csv("/homes_unix/jlegrand/data/Memento/atlas/RSN_N33/RSN41_cognitive_labeling.csv").rename(columns={"Numbering_new": "RSN"})
+    mapping.loc[mapping["Labels"].isna(), "Labels"] = "Unknown"
+    mapping["color_code"] = range(1, 34)
+
+    output_dir = atlas_path.parent
+    network_maps = nib.Nifti1Image(flat_m5, img.affine)
+    nib.save(network_maps, output_dir / "flat_m5n33.nii.gz")
+    mapping.to_csv(output_dir / "flat_m5n33.csv")
+    
+    return output_dir, mapping
+
+    
 
 def fetch_atlas_rsn41(
         atlas_tsv="/bigdata/jlegrand/data/Memento/atlas/RSN_M5_clean2_ws.dat",
         atlas_path="/bigdata/jlegrand/data/Memento/atlas/RSN_N41_atlas_M5_clean2_wscol.nii"
     ):
     df = pd.read_csv(atlas_tsv, sep="\t")
-    labels = df["tissue"].map(lambda x: x.strip()) + "_" + df["nroi"].astype(str) + "_" + "RSN" + df["RSN"].astype(str).apply(lambda x: x.zfill(2))
+    networks = "RSN" + df["RSN"].astype(str).apply(lambda x: x.zfill(2))
+    labels = df["tissue"].map(lambda x: x.strip()) + "_" + df["nroi"].astype(str) + "_" + networks
+    print(labels)
     atlas_bunch = Bunch(
         maps=atlas_path,
-        labels=labels,
+        labels=labels.to_list(),
+        networks=networks.to_list(),
         description="Experimental atlas of resting state networks"
     )
     return atlas_bunch
@@ -69,10 +137,11 @@ def overlay_atlas(img, atlas):
 atlas_mapping = {
     "AICHA": fetch_aicha,
     "rsn41": fetch_atlas_rsn41, # Keep former name for compatibility reasons
-    "m5": fetch_atlas_rsn41,
+    "gillig": fetch_atlas_m5n33,
     "harvard-oxford": lambda : datasets.fetch_atlas_harvard_oxford("cort-maxprob-thr25-2mm"),
     "schaeffer": lambda : datasets.fetch_atlas_schaefer_2018(resolution_mm=2),
     "schaeffer200": lambda : datasets.fetch_atlas_schaefer_2018(n_rois=200, resolution_mm=2),
+    "schaeffer100": lambda : datasets.fetch_atlas_schaefer_2018(n_rois=100, resolution_mm=2),
     "difumo": lambda : datasets.fetch_atlas_difumo(legacy_format=False),
     "smith": datasets.fetch_atlas_smith_2009,
     "msdl": datasets.fetch_atlas_msdl
@@ -140,6 +209,8 @@ class Atlas(Bunch):
 
     @property
     def macro_labels(self):
+        if "networks" in self.keys():
+            return self.networks
         l = self.labels
         return list(map(lambda x: str(x).split("_")[2], l))
             
