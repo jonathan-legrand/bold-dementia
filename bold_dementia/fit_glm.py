@@ -47,17 +47,18 @@ def make_fc_data(maps_path):
     df = pd.concat([df.reset_index(drop=True), fc], axis=1, join="inner")
     df = df.drop(df[df.MA == 0].index) # Drop MA == 0
 
-    if parameters["LONGITUDINAL"] is False:
-        raise NotImplementedError("Need to account for this in run_test")
+    # If the model does not account for groups subjects should be unique
+    if parameters["GROUPS"] is None: 
         df = df.groupby("sub").sample(n=1, random_state=config["seed"])
-        print(df.head())
     
     return df, edges, parameters
 
 # TODO Choose formula in run_config?
-def run_test(df, edges):
+def run_test(df, edges, parameters):
     test_df = df.dropna(subset=["NIVETUD"])
-    fit_df = lambda edge: fit_edges(edge, test_df)
+    fit_df = lambda edge: fit_edges(
+        edge, test_df, parameters["RHS_FORMULA"], parameters["GROUPS"]
+    )
     parallel = Parallel(n_jobs=2, verbose=2)
     # TODO This is awfully slow
     # Change optimizer in statsmodel perhaps?
@@ -75,7 +76,7 @@ def main():
     print(df.head())
     print(edges)
 
-    results = run_test(df, edges)
+    results = run_test(df, edges, parameters) # TODO Chain functions
     stats, pvalues = zip(*results)
     _, pvalues_corr = fdrcorrection(pvalues)
 
@@ -85,7 +86,8 @@ def main():
         "statmap.joblib": statmat,
         "pmat.joblib": pmat
     }
-    save_run(parameters, joblib.dump, matrix_export)
+    exppath = save_run(parameters, joblib.dump, matrix_export)
+    print(exppath)
     
 
 if __name__ == "__main__":
