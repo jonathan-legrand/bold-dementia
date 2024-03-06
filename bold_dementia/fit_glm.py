@@ -48,6 +48,7 @@ def make_fc_data(maps_path):
     df = df.drop(df[df.MA == 0].index) # Drop MA == 0
 
     if parameters["LONGITUDINAL"] is False:
+        raise NotImplementedError("Need to account for this in run_test")
         df = df.groupby("sub").sample(n=1, random_state=config["seed"])
         print(df.head())
     
@@ -66,11 +67,13 @@ def run_test(df, edges):
 
     
 import os
-os.environ['PYTHONWARNINGS']='ignore::ConvergenceWarning'
+#os.environ['PYTHONWARNINGS']='ignore::ConvergenceWarning'
 
 def main():
     maps_path = Path(sys.argv[1])
     df, edges, parameters = make_fc_data(maps_path)
+    print(df.head())
+    print(edges)
 
     results = run_test(df, edges)
     stats, pvalues = zip(*results)
