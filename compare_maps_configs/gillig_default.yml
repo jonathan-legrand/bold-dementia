@@ -1,11 +1,12 @@
 # COMPARE MAPS DEFAULT RUN
 confounds_strategy:
-  strategy: ["high_pass", "motion", "wm_csf"]
-  wm_csf: "full"
+  strategy: ["high_pass", "motion", "wm_csf", "global_signal"]
 SOFT: False
 ATLAS: "gillig"
 CLEAN_SIGNAL: True
-MACRO_LABELS: True
-NAME: "default-m5n33"
+MACRO_LABELS: False
+NAME: "inter-networks-m5n33"
 BALANCE_STRAT: []
-LONGITUDINAL: True
+LONGITUDINAL: False
+RHS_FORMULA: "AD + scale(current_scan_age) + SEX + NIVETUD"
+GROUPS: "CEN_ANOM" # If groups is not null, a mixed GLM is computed
