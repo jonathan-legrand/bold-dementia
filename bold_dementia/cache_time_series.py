@@ -18,6 +18,7 @@ BIDSDIR = Path(config["bids_dir"])
 PPATH = Path(config["augmented_phenotypes"])
 
 
+# TODO Pass arguments from argv
 def compute_and_cache_ts(atlas):
     memento = Memento(
         BIDSDIR,
@@ -25,11 +26,20 @@ def compute_and_cache_ts(atlas):
         atlas=atlas,
         cache_dir=BIDSDIR / "derivatives" / atlas.name
     )
-    memento.parallel_caching(n_jobs=16)
-    #memento.cache_series()
+    if atlas.is_soft:
+        print("is_soft is True, default to serial caching")
+        memento.cache_series() # For some reason parallel caching is slow with soft atlases
+    else:
+        print("Using parallel caching")
+        memento.parallel_caching(n_jobs=8)
     
 
-# TODO Pass atlas (and destination?) as argument to command line
+# TODO Pass atlas (and destination and ?) as argument to command line
+import sys
+
 if __name__ == "__main__":
-    atlas = Atlas.from_name("schaeffer200", soft=False)
+    is_soft = eval(sys.argv[2])
+    if not isinstance(is_soft, bool):
+        raise TypeError("is_soft should be in {True, False}")
+    atlas = Atlas.from_name(sys.argv[1], soft=eval(sys.argv[2]))
     compute_and_cache_ts(atlas)
