@@ -1,0 +1,11 @@
+# COMPARE MAPS DEFAULT RUN
+confounds_strategy:
+  strategy: ["high_pass", "motion", "wm_csf"]
+  wm_csf: "full"
+SOFT: False
+ATLAS: "gillig"
+CLEAN_SIGNAL: True
+MACRO_LABELS: True
+NAME: "default-m5n33"
+BALANCE_STRAT: []
+LONGITUDINAL: True
