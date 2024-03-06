@@ -5,8 +5,8 @@ SOFT: False
 ATLAS: "msdl"
 CLEAN_SIGNAL: True
 MACRO_LABELS: True
-NAME: "global-signal-ols"
+NAME: "global-signal-mixed-centre"
 BALANCE_STRAT: []
 LONGITUDINAL: False
 RHS_FORMULA: "AD + scale(current_scan_age) + SEX + NIVETUD"
-GROUPS: null # If groups is not null, a mixed GLM is computed
+GROUPS: "CEN_ANOM" # If groups is not null, a mixed GLM is computed
