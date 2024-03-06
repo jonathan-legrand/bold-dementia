@@ -10,7 +10,7 @@ def fit_edges(edge_name, dataframe, rhs_formula, groups):
     else:
         model = sm.MixedLM(endog=lhs, exog=rhs, groups=dataframe[groups])
     try:
-        result = model.fit("bfgs") # TODO Explore method influence
+        result = model.fit() # TODO Explore method influence
         return result.params.AD, result.pvalues.AD
     except np.linalg.LinAlgError:
         return np.nan, np.nan
