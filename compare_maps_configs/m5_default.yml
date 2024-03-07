@@ -2,7 +2,7 @@
 confounds_strategy:
   strategy: ["high_pass", "motion", "wm_csf"]
   wm_csf: "full"
-SOFT: False
+SOFT: True
 ATLAS: "rsn41"
 CLEAN_SIGNAL: True
 MACRO_LABELS: True
