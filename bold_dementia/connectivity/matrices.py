@@ -214,7 +214,9 @@ def plot_ordered_matrix(
         vmax=bounds[1],
         cmap=cmap,
         xticklabels=atlas.labels,
-        yticklabels=atlas.labels
+        yticklabels=atlas.labels,
+        linewidth=.5,
+        linecolor="black"
     )
 
 
