@@ -72,6 +72,37 @@ def _create_m5n33(atlas_path=Path(f"{config['custom_atlases']}/RSN_N33/RSN_Cog33
     return output_dir, mapping
 
     
+def fetch_atlas_m5n33_regions(
+        atlas_tsv="/bigdata/jlegrand/data/Memento/atlas/RSN_M5_clean2_ws.dat",
+        updated_rsn="/bigdata/jlegrand/data/Memento/atlas/RSN_N33/RSN41_cognitive_labeling_updated.csv",
+        atlas_path="/bigdata/jlegrand/data/Memento/atlas/RSN_N41_atlas_M5_clean2_wscol.nii"
+    ):
+    original_labels = pd.read_csv(atlas_tsv, sep="\t")
+    networks = "RSN" + original_labels["RSN"].astype(str).apply(lambda x: x.zfill(2))
+    original_labels["Numbering_original"] = networks
+
+    notrunc = original_labels.drop(original_labels[original_labels.tissue.str.contains("trunc")].index, axis=0)
+    updated_rsn = pd.read_csv(
+        "/bigdata/jlegrand/data/Memento/atlas/RSN_N33/RSN41_cognitive_labeling_updated.csv"
+    )
+    merged = pd.merge(
+        notrunc,
+        updated_rsn,
+        on="Numbering_original",
+        how="inner"
+    )
+    labels = merged["Anatomical label achille 2024"] + "_" + merged["icol"].astype(str).map(lambda x: x.zfill(3))
+
+    
+    atlas_bunch = Bunch(
+        maps=atlas_path,
+        labels=labels.to_list(),
+        networks=merged.Numbering_new.to_list(),
+        description="Experimental atlas of resting state networks with regions, v.0.3 with 33 networks",
+        **dict(merged)
+    )
+    return atlas_bunch
+
 
 def fetch_atlas_rsn41(
         atlas_tsv="/bigdata/jlegrand/data/Memento/atlas/RSN_M5_clean2_ws.dat",
@@ -138,6 +169,7 @@ atlas_mapping = {
     "AICHA": fetch_aicha,
     "rsn41": fetch_atlas_rsn41, # Keep former name for compatibility reasons
     "gillig": fetch_atlas_m5n33,
+    "gillig-regions": fetch_atlas_m5n33_regions,
     "harvard-oxford": lambda : datasets.fetch_atlas_harvard_oxford("cort-maxprob-thr25-2mm"),
     "schaeffer": lambda : datasets.fetch_atlas_schaefer_2018(resolution_mm=2),
     "schaeffer200": lambda : datasets.fetch_atlas_schaefer_2018(n_rois=200, resolution_mm=2),
