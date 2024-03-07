@@ -14,6 +14,7 @@ from statsmodels.tools.sm_exceptions import ConvergenceWarning
 
 from bold_dementia.connectivity import Atlas, reshape_pvalues, vec_idx_to_mat_idx, z_transform_to_vec
 from bold_dementia.models.matrix_GLM import fit_edges
+from bold_dementia.data.volumes import add_volumes
 from utils.saving import save_run
 
 config = get_config()
@@ -47,9 +48,16 @@ def make_fc_data(maps_path):
     df = pd.concat([df.reset_index(drop=True), fc], axis=1, join="inner")
     df = df.drop(df[df.MA == 0].index) # Drop MA == 0
 
-    # If the model does not account for groups subjects should be unique
-    if parameters["GROUPS"] is None: 
+    # If the model does not account for subjects, then they should be unique
+    if parameters["GROUPS"] != "sub": 
         df = df.groupby("sub").sample(n=1, random_state=config["seed"])
+    else:
+        print("Using several scans per subect and mixed models")
+
+    # TODO Pass TIV only to be more efficient?
+    if "total intracranial" in parameters["RHS_FORMULA"]:
+        print("Add intracranial volumes to phenotypes")
+        df = add_volumes(df, config["volumes"])
     
     return df, edges, parameters
 
@@ -74,7 +82,6 @@ def main():
     maps_path = Path(sys.argv[1])
     df, edges, parameters = make_fc_data(maps_path)
     print(df.head())
-    print(edges)
 
     results = run_test(df, edges, parameters) # TODO Chain functions
     stats, pvalues = zip(*results)
