@@ -85,9 +85,10 @@ def create_m5_notrunc_(old_atlas_path=Path("/bigdata/jlegrand/data/Memento/atlas
     assert np.all(derivative == 1), "Reindexing failed because of jumps in new array values"
     
     output_path = old_atlas_path.parent / "M5_no-trunc.nii.gz"
-    network_maps = nib.Nifti1Image(new_arr, img.affine)
+    network_maps = nib.Nifti1Image(new_arr.astype(np.int32), img.affine)
     nib.save(network_maps, output_path)
     print(f"New atlas stored in {output_path}")
+
     
 def fetch_atlas_m5n33_regions(
         atlas_tsv="/bigdata/jlegrand/data/Memento/atlas/RSN_M5_clean2_ws.dat",
@@ -98,11 +99,8 @@ def fetch_atlas_m5n33_regions(
     networks = "RSN" + original_labels["RSN"].astype(str).apply(lambda x: x.zfill(2))
     original_labels["Numbering_original"] = networks
 
-    # TODO Uncommment (and simplify please)
-    #notrunc = original_labels.drop(original_labels[original_labels.tissue.str.contains("trunc")].index, axis=0)
-    import warnings
-    warnings.warn("Using temorary strat of not removing the trunc!!!")
-    notrunc = original_labels
+    # TODO and simplify please
+    notrunc = original_labels.drop(original_labels[original_labels.tissue.str.contains("trunc")].index, axis=0)
 
     updated_rsn = pd.read_csv(
         "/bigdata/jlegrand/data/Memento/atlas/RSN_N33/RSN41_cognitive_labeling_updated.csv"
@@ -114,11 +112,12 @@ def fetch_atlas_m5n33_regions(
         how="inner"
     )
     labels = merged["Anatomical label achille 2024"] + "_" + merged["icol"].astype(str).map(lambda x: x.zfill(3))
-
+    labels = labels.to_list()
+    labels.insert(0, "Background")
     
     atlas_bunch = Bunch(
         maps=atlas_path,
-        labels=labels.to_list(),
+        labels=labels,
         networks=merged.Numbering_new.to_list(),
         description="Experimental atlas of resting state networks with regions, v.0.3 with 33 networks",
         **dict(merged)
@@ -241,7 +240,6 @@ class Atlas(Bunch):
         if self.is_soft:
             masker = NiftiMapsMasker(
                 maps_img=self.maps,
-                labels=self.labels,
                 **masker_kw
             )
         else:
