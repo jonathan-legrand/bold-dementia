@@ -72,16 +72,38 @@ def _create_m5n33(atlas_path=Path(f"{config['custom_atlases']}/RSN_N33/RSN_Cog33
     return output_dir, mapping
 
     
+trunc_indices = (445, 444, 447, 446, 442, 441, 443, 440, 448)
+
+def create_m5_notrunc_(old_atlas_path=Path("/bigdata/jlegrand/data/Memento/atlas/RSN_N41_atlas_M5_clean2_wscol.nii")):
+    img = nib.load(old_atlas_path)
+    arr = img.get_fdata()
+    
+    new_arr = np.where(np.isin(arr, trunc_indices), 0, arr)
+
+    u = np.unique(new_arr)
+    derivative = u[1:] - u[:-1]
+    assert np.all(derivative == 1), "Reindexing failed because of jumps in new array values"
+    
+    output_path = old_atlas_path.parent / "M5_no-trunc.nii.gz"
+    network_maps = nib.Nifti1Image(new_arr, img.affine)
+    nib.save(network_maps, output_path)
+    print(f"New atlas stored in {output_path}")
+    
 def fetch_atlas_m5n33_regions(
         atlas_tsv="/bigdata/jlegrand/data/Memento/atlas/RSN_M5_clean2_ws.dat",
         updated_rsn="/bigdata/jlegrand/data/Memento/atlas/RSN_N33/RSN41_cognitive_labeling_updated.csv",
-        atlas_path="/bigdata/jlegrand/data/Memento/atlas/RSN_N41_atlas_M5_clean2_wscol.nii"
+        atlas_path="/bigdata/jlegrand/data/Memento/atlas/M5_no-trunc.nii.gz" # TODO Test me
     ):
     original_labels = pd.read_csv(atlas_tsv, sep="\t")
     networks = "RSN" + original_labels["RSN"].astype(str).apply(lambda x: x.zfill(2))
     original_labels["Numbering_original"] = networks
 
-    notrunc = original_labels.drop(original_labels[original_labels.tissue.str.contains("trunc")].index, axis=0)
+    # TODO Uncommment (and simplify please)
+    #notrunc = original_labels.drop(original_labels[original_labels.tissue.str.contains("trunc")].index, axis=0)
+    import warnings
+    warnings.warn("Using temorary strat of not removing the trunc!!!")
+    notrunc = original_labels
+
     updated_rsn = pd.read_csv(
         "/bigdata/jlegrand/data/Memento/atlas/RSN_N33/RSN41_cognitive_labeling_updated.csv"
     )
@@ -219,11 +241,13 @@ class Atlas(Bunch):
         if self.is_soft:
             masker = NiftiMapsMasker(
                 maps_img=self.maps,
+                labels=self.labels,
                 **masker_kw
             )
         else:
             masker = NiftiLabelsMasker(
                 labels_img=self.maps,
+                labels=self.labels, # TODO Test that
                 **masker_kw
             )
         masker.fit()
