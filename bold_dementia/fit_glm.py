@@ -61,9 +61,17 @@ def make_fc_data(maps_path):
     
     return df, edges, parameters
 
-# TODO Choose formula in run_config?
+# TODO Format report only, do not print, and move to utils
+def display_df_report(df):
+    print(f"Testing on {len(df)} subjects")
+    print(f"{df.MA.sum()} AD")
+    print(f"{df.DEMENCE_DAT.isna().sum()} controls")
+    
+
+# TODO Print info about the test, N, etc
 def run_test(df, edges, parameters):
     test_df = df.dropna(subset=["NIVETUD"])
+    display_df_report(test_df)
     fit_df = lambda edge: fit_edges(
         edge, test_df, parameters["RHS_FORMULA"], parameters["GROUPS"]
     )
