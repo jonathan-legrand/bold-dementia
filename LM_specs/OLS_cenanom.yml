@@ -1,0 +1,3 @@
+NAME: "ols-cenanom"
+RHS_FORMULA: "AD + scale(current_scan_age) + SEX + NIVETUD + scale(`total intracranial`) + CEN_ANOM"
+GROUPS: null # If groups is not null, a mixed GLM is computed

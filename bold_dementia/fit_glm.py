@@ -91,6 +91,7 @@ def main():
     
     maps_specs = get_config(maps_path / "parameters.yml")
     model_specs = get_config(model_specs_path)
+    print(model_specs)
 
     df, edges, parameters = make_fc_data(maps_specs, model_specs)
     print(df.head())
