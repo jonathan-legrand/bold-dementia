@@ -1,4 +1,4 @@
-import json
+import yaml
 import os
 from pathlib import Path
 from typing import Callable
@@ -6,7 +6,12 @@ from bold_dementia import get_config
 
 config = get_config()
 
-def save_run(run_config: str, save_func: Callable, save_mapping: dict) -> Path:
+def save_run(
+    run_config: str,
+    save_func: Callable,
+    save_mapping: dict,
+    dirkey: str = "connectivity_matrices"
+) -> Path:
     """Save current run object and parameters
 
     Args:
@@ -20,13 +25,13 @@ def save_run(run_config: str, save_func: Callable, save_mapping: dict) -> Path:
 
     name = f"atlas-{run_config['ATLAS']}_{run_config['NAME']}"
 
-    experience_path = Path(config["connectivity_matrices"]) / name
+    experience_path = Path(config[dirkey]) / name
 
     if not os.path.exists(experience_path):
         os.makedirs(experience_path)
 
-    with open(experience_path / "parameters.json", "w") as stream:
-        json.dump(run_config, stream)
+    with open(experience_path / "parameters.yml", "w") as stream:
+        yaml.dump(run_config, stream)
 
     for fname, obj in save_mapping.items():
         save_func(obj, experience_path / fname)

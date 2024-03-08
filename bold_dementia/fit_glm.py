@@ -19,14 +19,13 @@ from utils.saving import save_run
 
 config = get_config()
 
-def make_fc_data(maps_path):
-    with open(maps_path / "parameters.json", "r") as stream:
-        parameters = json.load(stream)
-    print(parameters)
+def make_fc_data(maps_spec, model_spec):
+    
 
+    maps_path = Path(sys.argv[1]) # This is not great but whatever
     AD_matrices = joblib.load(maps_path / "AD.joblib")
     control_matrices = joblib.load(maps_path / "control.joblib")
-    atlas = Atlas.from_name(parameters["ATLAS"], parameters["SOFT"])
+    atlas = Atlas.from_name(maps_spec["ATLAS"], maps_spec["SOFT"])
 
     AD_df = pd.read_csv(maps_path / "balanced_AD.csv", index_col=0)
     control_df = pd.read_csv(maps_path / "balanced_control.csv", index_col=0)
@@ -49,17 +48,17 @@ def make_fc_data(maps_path):
     df = df.drop(df[df.MA == 0].index) # Drop MA == 0
 
     # If the model does not account for subjects, then they should be unique
-    if parameters["GROUPS"] != "sub": 
+    if model_spec["GROUPS"] != "sub": 
         df = df.groupby("sub").sample(n=1, random_state=config["seed"])
     else:
         print("Using several scans per subect and mixed models")
 
     # TODO Pass TIV only to be more efficient?
-    if "total intracranial" in parameters["RHS_FORMULA"]:
+    if "total intracranial" in model_spec["RHS_FORMULA"]:
         print("Add intracranial volumes to phenotypes")
         df = add_volumes(df, config["volumes"])
     
-    return df, edges, parameters
+    return df, edges, model_spec
 
 # TODO Format report only, do not print, and move to utils
 def display_df_report(df):
@@ -69,11 +68,11 @@ def display_df_report(df):
     
 
 # TODO Print info about the test, N, etc
-def run_test(df, edges, parameters):
+def run_test(df, edges, model_spec):
     test_df = df.dropna(subset=["NIVETUD"])
     display_df_report(test_df)
     fit_df = lambda edge: fit_edges(
-        edge, test_df, parameters["RHS_FORMULA"], parameters["GROUPS"]
+        edge, test_df, model_spec["RHS_FORMULA"], model_spec["GROUPS"]
     )
     parallel = Parallel(n_jobs=2, verbose=2)
     # TODO This is awfully slow
@@ -88,7 +87,12 @@ import os
 
 def main():
     maps_path = Path(sys.argv[1])
-    df, edges, parameters = make_fc_data(maps_path)
+    model_specs_path = Path(sys.argv[2])
+    
+    maps_specs = get_config(maps_path / "parameters.yml")
+    model_specs = get_config(model_specs_path)
+
+    df, edges, parameters = make_fc_data(maps_specs, model_specs)
     print(df.head())
 
     results = run_test(df, edges, parameters) # TODO Chain functions
@@ -101,10 +105,15 @@ def main():
         "statmap.joblib": statmat,
         "pmat.joblib": pmat
     }
-    exppath = save_run(parameters, joblib.dump, matrix_export)
+
+    maps_name = maps_specs.pop("NAME")
+    model_name = model_specs.pop("NAME")
+    parameters = {**model_specs, **maps_specs}
+    parameters["NAME"] = maps_name + "_" + model_name
+    
+    exppath = save_run(parameters, joblib.dump, matrix_export, dirkey="statresults")
     print(exppath)
     
-
 if __name__ == "__main__":
     main()
     
