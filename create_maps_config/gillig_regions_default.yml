@@ -1,0 +1,9 @@
+# COMPARE MAPS DEFAULT RUN
+confounds_strategy:
+  strategy: ["high_pass", "motion", "wm_csf", "global_signal"]
+SOFT: False
+ATLAS: "gillig-regions"
+CLEAN_SIGNAL: True
+MACRO_LABELS: False
+NAME: "default"
+BALANCE_STRAT: []
