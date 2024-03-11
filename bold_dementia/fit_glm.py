@@ -74,7 +74,8 @@ def run_test(df, edges, model_spec):
     fit_df = lambda edge: fit_edges(
         edge, test_df, model_spec["RHS_FORMULA"], model_spec["GROUPS"]
     )
-    parallel = Parallel(n_jobs=2, verbose=2)
+    # TODO check n_jobs in config and set a default value
+    parallel = Parallel(n_jobs=8, verbose=2)
     # TODO This is awfully slow
     # Change optimizer in statsmodel perhaps?
     with warnings.catch_warnings(category=ConvergenceWarning, action="ignore"):
