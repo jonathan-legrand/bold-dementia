@@ -1,7 +1,7 @@
-from itertools import product
+from itertools import product, combinations
 import numpy as np
 
-def network_to_network_connectivity(matrix, network_to_idx):
+def network_to_network_connectivity(matrix, network_to_idx, pairing_func=combinations):
     """
 
     Args:
@@ -12,7 +12,7 @@ def network_to_network_connectivity(matrix, network_to_idx):
     Yields:
         _type_: _description_
     """
-    for network_a, network_b in combinations(network_to_idx.index, 2):
+    for network_a, network_b in pairing_func(network_to_idx.index, 2):
         loc_a, loc_b = network_to_idx[network_a], network_to_idx[network_b]
         connectivity = matrix[loc_a[0]:loc_a[1], loc_b[0]:loc_b[1]].mean()
         yield network_a, network_b, connectivity
