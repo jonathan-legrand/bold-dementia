@@ -233,7 +233,6 @@ def group_by_networks(macro_labels):
     prev_label = None
     for i, label in enumerate(networks[sort_index]):
         if label != prev_label:
-            print(label)
             ticks.append(i)
             lbls.append(label)
             prev_label = label
