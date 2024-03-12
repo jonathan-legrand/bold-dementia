@@ -18,6 +18,7 @@ from bold_dementia.connectivity import (
 from bold_dementia.models.matrix_GLM import fit_edges
 from bold_dementia.data.volumes import add_volumes
 from utils.saving import save_run
+from utils.iterables import join, all_connectivities
 
 config = get_config()
 
@@ -38,25 +39,32 @@ def make_fc_data(maps_spec, model_spec):
         print("BY_BLOCK is True, grouping regions into networks...")
         AD_matrices, _ = group_groupby(AD_matrices, atlas)
         control_matrices, labels = group_groupby(control_matrices, atlas)
+        
+        # k is named that way because of numpy
+        k:int = 0
+        
         print("New labels : ", end="")
         print(labels)
     else:
         labels = atlas.labels
-        
+        k:int = -1
 
-    AD_vec = np.array([z_transform_to_vec(mat) for mat in AD_matrices])
-    control_vec = np.array([z_transform_to_vec(mat) for mat in control_matrices])
+    
+    AD_vec = np.array([z_transform_to_vec(mat, k) for mat in AD_matrices])
+    control_vec = np.array([z_transform_to_vec(mat, k) for mat in control_matrices])
 
     fc = np.vstack((AD_vec, control_vec))
     l = fc.shape[1]
-    rows, cols = vec_idx_to_mat_idx(l)
-    edges = [f"{labels[i]}_{labels[j]}" for i, j in zip(rows, cols)]
+    if k == -1:
+        rows, cols = vec_idx_to_mat_idx(l)
+        edges = [f"{labels[i]}_{labels[j]}" for i, j in zip(rows, cols)]
+    else:
+        edges = list(join(all_connectivities(labels)))
 
     fc = pd.DataFrame(fc, columns=edges)
-
     df["AD"] = np.where(df.scan_to_onset < 0, 1, 0)
     df = pd.concat([df.reset_index(drop=True), fc], axis=1, join="inner")
-    df = df.drop(df[df.MA == 0].index) # Drop MA == 0
+    df = df.drop(df[df.MA == 0].index)
 
     # If the model does not account for subjects, then they should be unique
     if model_spec["GROUPS"] != "sub": 
@@ -87,7 +95,8 @@ def run_test(df, edges, model_spec):
     )
     # TODO check n_jobs in config and set a default value
     parallel = Parallel(n_jobs=8, verbose=2)
-    # TODO This is awfully slow
+
+    # TODO This is awfully slow for mixed models and has convergence issues
     # Change optimizer in statsmodel perhaps?
     with warnings.catch_warnings(category=ConvergenceWarning, action="ignore"):
         test_results = parallel(delayed(fit_df)(edge) for edge in edges)
@@ -110,23 +119,42 @@ def main():
 
     results = run_test(df, edges, parameters) # TODO Chain functions
     stats, pvalues = zip(*results)
-    _, pvalues_corr = fdrcorrection(pvalues)
 
-    statmat = reshape_pvalues(stats)
-    pmat = reshape_pvalues(pvalues_corr)
-    pmat_raw = reshape_pvalues(pvalues)
-    matrix_export = {
-        "statmap.joblib": statmat,
-        "pmat.joblib": pmat
-        "pmat_raw.joblib": pmat_raw
-    }
+    _, pvalues_corr = fdrcorrection(pvalues)
 
     maps_name = maps_specs.pop("NAME")
     model_name = model_specs.pop("NAME")
     parameters = {**model_specs, **maps_specs}
     parameters["NAME"] = maps_name + "_" + model_name
     
-    exppath = save_run(parameters, joblib.dump, matrix_export, dirkey="statresults")
+    # The original matrix ordering is preserved 
+    # when no groupby happened,
+    # otherwise it's better to just provide resdf for further
+    # analysis
+    if "BY_BLOCK" not in model_specs.keys() or model_specs["BY_BLOCK"] is False:
+        statmat = reshape_pvalues(stats)
+        pmat = reshape_pvalues(pvalues_corr)
+        pmat_raw = reshape_pvalues(pvalues)
+        matrix_export = {
+            "statmap.joblib": statmat,
+            "pmat.joblib": pmat,
+            "pmat_raw.joblib": pmat_raw
+        }
+        save_run(parameters, joblib.dump, matrix_export, dirkey="statresults")
+
+    resdf = pd.DataFrame({
+        "edges": edges,
+        "beta_AD": stats,
+        "pvalues_raw": pvalues,
+        "pvalues_fdr": pvalues_corr
+    })
+    exppath = save_run(
+        parameters,
+        lambda df, fname: df.to_csv(fname),
+        {"resdf.csv": resdf},
+        dirkey="statresults"
+    )
+
     print(exppath)
     
 if __name__ == "__main__":

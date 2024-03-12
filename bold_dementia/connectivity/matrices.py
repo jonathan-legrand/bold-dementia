@@ -8,14 +8,19 @@ import seaborn as sns
 from itertools import combinations
 import math
 
-def compute_mat_size(l):
+def compute_mat_size(l, with_diag=False):
     # Mat size is the positive root of :
-    # n**2 - n - 2l = 0 
+    # n**2 - b*n - 2l = 0 
     # Where l is the length of pvalues array
-    # and n is the square matrix size
-    n = (1 + math.sqrt(1 + 8 * l)) / 2
+    # and n is the square matrix size.
+    if with_diag:
+        b = 1
+    else:
+        b = -1
+    n = (-b + math.sqrt(1 + 8 * l)) / 2
     if n != int(n):
-        raise ValueError(f"Array of lenght {l} cannot be reshaped as a square matrix")
+        raise ValueError(f"Array of lenght {l} cannot be reshaped as a square matrix\
+                         (with_diag is {with_diag})")
     return int(n)
     
 
@@ -36,6 +41,24 @@ def reshape_pvalues(pvalues):
         pointer += i
 
     return arr + arr.T
+
+def reshape_pvalues_with_diag(pvalues):
+    """
+    This could be rewritten as a special case of reshape pvalues
+
+    """
+    l = len(pvalues)
+    n = compute_mat_size(l, with_diag=True)
+    
+    arr = np.zeros((n, n))
+    pointer = 0
+    for i in range(n):
+        #print(pvalues[pointer:pointer+i+1]) Debug printing
+        arr[i, :i + 1] = pvalues[pointer:pointer + i + 1]
+        pointer += (i + 1)
+
+    return arr + np.tril(arr, k=-1).T
+
     
 
 def plot_matrix(
@@ -209,17 +232,17 @@ def plot_ordered_matrix(
     return fig
 
 
-def mat_to_vec(mat):
+def mat_to_vec(mat, k):
     n = len(mat)
-    tril_i = np.tril_indices(n, k=-1)
+    tril_i = np.tril_indices(n, k=k)
     flat_mat = mat[tril_i].ravel()
     return flat_mat
 
-def z_transform_mat(mat):
-    flat_mat = mat_to_vec(mat)
+def z_transform_mat(mat, k=-1):
+    flat_mat = mat_to_vec(mat, k)
     z_transformed = np.arctanh(flat_mat)
     return reshape_pvalues(z_transformed)
 
-def z_transform_to_vec(mat):
-    vec = mat_to_vec(mat)
+def z_transform_to_vec(mat, k=-1):
+    vec = mat_to_vec(mat, k)
     return np.arctanh(vec)

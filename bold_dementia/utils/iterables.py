@@ -1,6 +1,6 @@
 from functools import reduce
 import sys
-from itertools import filterfalse, groupby
+from itertools import filterfalse, groupby, combinations, chain, product
 from operator import add
 
 def unique(iterable):
@@ -25,3 +25,13 @@ def all_equal(iterable):
     """
     g = groupby(iterable)
     return next(g, True) and not next(g, False)
+
+def loops(it):
+    unique_el = unique(it)
+    return ((el, el) for el in unique_el)
+
+def all_connectivities(it):
+    return chain(combinations(it, 2), loops(it))
+
+def join(it):
+    return (f"{i}_{j}" for i, j in it)
