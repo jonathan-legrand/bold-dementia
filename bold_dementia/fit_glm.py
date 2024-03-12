@@ -120,6 +120,7 @@ def main():
     results = run_test(df, edges, parameters) # TODO Chain functions
     stats, pvalues = zip(*results)
 
+    print(f"Correcting FDR with {len(pvalues)} comparisons")
     _, pvalues_corr = fdrcorrection(pvalues)
 
     maps_name = maps_specs.pop("NAME")
