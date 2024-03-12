@@ -93,7 +93,7 @@ def create_m5_notrunc_(old_atlas_path=Path("/bigdata/jlegrand/data/Memento/atlas
 def fetch_atlas_m5n33_regions(
         atlas_tsv="/bigdata/jlegrand/data/Memento/atlas/RSN_M5_clean2_ws.dat",
         updated_rsn="/bigdata/jlegrand/data/Memento/atlas/RSN_N33/RSN41_cognitive_labeling_updated.csv",
-        atlas_path="/bigdata/jlegrand/data/Memento/atlas/M5_no-trunc.nii.gz" # TODO Test me
+        atlas_path="/bigdata/jlegrand/data/Memento/atlas/M5_no-trunc.nii.gz"
     ):
     original_labels = pd.read_csv(atlas_tsv, sep="\t")
     networks = "RSN" + original_labels["RSN"].astype(str).apply(lambda x: x.zfill(2))
