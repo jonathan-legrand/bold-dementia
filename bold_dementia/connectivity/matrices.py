@@ -205,26 +205,9 @@ def plot_ordered_matrix(
         linecolor="black"
     )
 
-
     fig.tight_layout()
     return fig
 
-
-def group_by_networks(macro_labels):
-    networks = np.array(macro_labels)
-    sort_index = np.argsort(networks)
-
-    ticks = []
-    lbls = []
-    prev_label = None
-    for i, label in enumerate(networks[sort_index]):
-        if label != prev_label:
-            ticks.append(i)
-            lbls.append(label)
-            prev_label = label
-
-    ticks.append(i+1)
-    return ticks, sort_index
 
 def mat_to_vec(mat):
     n = len(mat)

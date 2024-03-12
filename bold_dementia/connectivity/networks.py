@@ -1,5 +1,11 @@
 from itertools import product, combinations
 import numpy as np
+import itertools
+
+import pandas as pd
+
+from bold_dementia.utils.iterables import unique
+
 
 def network_to_network_connectivity(matrix, network_to_idx, pairing_func=combinations):
     """
@@ -30,3 +36,38 @@ def block_block(matrix, network_to_idx, aggregating_func=edge_counts):
         block = matrix[loc_a[0]:loc_a[1], loc_b[0]:loc_b[1]]
 
         yield network_a, network_b, *aggregating_func(block)
+
+
+def macro_matrix(matrix, network_to_idx):
+    gen = block_block(matrix, network_to_idx, aggregating_func=lambda block : (block.mean(),))
+    comparisons = pd.DataFrame(gen, columns=["node_a", "node_b", "connectivity"])
+    pivoted = comparisons.pivot(index="node_a", columns="node_b")
+    return pivoted.loc[:, "connectivity"]
+
+def groupby_blocks(matrix, atlas):
+    ticks, sort_index = group_by_networks(atlas.macro_labels)
+    matrix_sort = np.ix_(sort_index, sort_index)
+    sorted_matrix = matrix[matrix_sort]
+    new_labels = sorted(tuple(unique(atlas.macro_labels)))
+
+    network_to_idx = pd.Series(dict(zip(
+        new_labels,
+        itertools.pairwise(ticks)
+    )))
+    return macro_matrix(sorted_matrix, network_to_idx), new_labels
+
+def group_by_networks(macro_labels):
+    networks = np.array(macro_labels)
+    sort_index = np.argsort(networks)
+
+    ticks = []
+    lbls = []
+    prev_label = None
+    for i, label in enumerate(networks[sort_index]):
+        if label != prev_label:
+            ticks.append(i)
+            lbls.append(label)
+            prev_label = label
+
+    ticks.append(i+1)
+    return ticks, sort_index
