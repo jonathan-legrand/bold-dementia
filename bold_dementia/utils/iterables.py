@@ -1,6 +1,6 @@
 from functools import reduce
 import sys
-from itertools import filterfalse
+from itertools import filterfalse, groupby
 from operator import add
 
 def unique(iterable):
@@ -18,3 +18,10 @@ def itersize(iterable):
         add,
         map(sys.getsizeof, iterable)
     )
+
+def all_equal(iterable):
+    """
+    From itertools recipes
+    """
+    g = groupby(iterable)
+    return next(g, True) and not next(g, False)

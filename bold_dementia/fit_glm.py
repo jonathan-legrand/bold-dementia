@@ -12,7 +12,9 @@ import numpy as np
 from statsmodels.stats.multitest import fdrcorrection
 from statsmodels.tools.sm_exceptions import ConvergenceWarning
 
-from bold_dementia.connectivity import Atlas, reshape_pvalues, vec_idx_to_mat_idx, z_transform_to_vec
+from bold_dementia.connectivity import (
+    Atlas, reshape_pvalues, vec_idx_to_mat_idx, z_transform_to_vec, group_groupby
+)
 from bold_dementia.models.matrix_GLM import fit_edges
 from bold_dementia.data.volumes import add_volumes
 from utils.saving import save_run
@@ -31,13 +33,22 @@ def make_fc_data(maps_spec, model_spec):
     control_df = pd.read_csv(maps_path / "balanced_control.csv", index_col=0)
     df = pd.concat((AD_df, control_df))
 
-    
+    # Whether to perform analysis on a network level to tame FDR
+    if "BY_BLOCK" in model_spec.keys() and model_spec["BY_BLOCK"] is True:
+        print("BY_BLOCK is True, grouping regions into networks...")
+        AD_matrices, _ = group_groupby(AD_matrices, atlas)
+        control_matrices, labels = group_groupby(control_matrices, atlas)
+        print("New labels : ", end="")
+        print(labels)
+    else:
+        labels = atlas.labels
+        
+
     AD_vec = np.array([z_transform_to_vec(mat) for mat in AD_matrices])
     control_vec = np.array([z_transform_to_vec(mat) for mat in control_matrices])
 
     fc = np.vstack((AD_vec, control_vec))
     l = fc.shape[1]
-    labels = atlas.labels
     rows, cols = vec_idx_to_mat_idx(l)
     edges = [f"{labels[i]}_{labels[j]}" for i, j in zip(rows, cols)]
 
@@ -103,9 +114,11 @@ def main():
 
     statmat = reshape_pvalues(stats)
     pmat = reshape_pvalues(pvalues_corr)
+    pmat_raw = reshape_pvalues(pvalues)
     matrix_export = {
         "statmap.joblib": statmat,
         "pmat.joblib": pmat
+        "pmat_raw.joblib": pmat_raw
     }
 
     maps_name = maps_specs.pop("NAME")

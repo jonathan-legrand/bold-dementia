@@ -1,10 +1,12 @@
 from itertools import product, combinations
 import numpy as np
 import itertools
+from typing import Iterable, Tuple
 
 import pandas as pd
 
-from bold_dementia.utils.iterables import unique
+from bold_dementia.utils.iterables import unique, all_equal
+from bold_dementia.connectivity import Atlas
 
 
 def network_to_network_connectivity(matrix, network_to_idx, pairing_func=combinations):
@@ -71,3 +73,19 @@ def group_by_networks(macro_labels):
 
     ticks.append(i+1)
     return ticks, sort_index
+
+def group_groupby(matrices: Iterable, atlas: Atlas) -> Tuple[np.ndarray, list[str]]:
+    """Apply grouping by networks to an iterable of connectivity matrices
+
+    Returns:
+        Tuple[np.ndarray, list[str]]: Array of new connectivity matrices with
+        the corresponding macro labels
+    """
+    res = (groupby_blocks(mat, atlas) for mat in matrices)
+    blocks, labels = zip(*res)
+    blocks = np.stack([AD_block.values for AD_block in blocks], axis=0)
+    
+    assert all_equal(labels)
+    labels = labels[0]
+
+    return blocks, labels
