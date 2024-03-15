@@ -39,8 +39,8 @@ def make_fc_data(maps_spec, model_spec):
         AD_matrices, _ = group_groupby(AD_matrices, atlas)
         control_matrices, labels = group_groupby(control_matrices, atlas)
 
-        AD_fc = pd.concat(edge_format(block) for block in AD_matrices).reset_index(drop=True)
-        control_fc = pd.concat(edge_format(block) for block in control_matrices).reset_index(drop=True)
+        AD_fc = pd.concat(edge_format(block, labels) for block in AD_matrices).reset_index(drop=True)
+        control_fc = pd.concat(edge_format(block, labels) for block in control_matrices).reset_index(drop=True)
         edges = AD_fc.columns.to_list()
         
         fc = pd.concat((AD_fc, control_fc)).reset_index(drop=True)

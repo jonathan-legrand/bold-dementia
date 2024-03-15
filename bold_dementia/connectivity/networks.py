@@ -5,13 +5,16 @@ from typing import Iterable, Tuple
 
 import pandas as pd
 
-from bold_dementia.utils.iterables import unique, all_equal
+from bold_dementia.utils.iterables import unique, all_equal, join, all_connectivities
 from bold_dementia.connectivity import Atlas
 
-def edge_format(block):
+def edge_format(block, labels):
     unstacked = block.unstack().reset_index().rename(columns={0: "FC"})
     unstacked["edge"] = unstacked["node_a"] + "_" + unstacked["node_b"]
-    c = unstacked.loc[:, ["edge", "FC"]]
+
+    target_cols = tuple(join(all_connectivities(labels)))
+    triangle_mask = unstacked.edge.isin(target_cols)
+    c = unstacked[triangle_mask].loc[:, ["edge", "FC"]]
     return c.set_index("edge").T
 
 def network_to_network_connectivity(matrix, network_to_idx, pairing_func=combinations):
