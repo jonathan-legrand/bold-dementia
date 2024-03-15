@@ -18,6 +18,23 @@ def generate_topology(target_label, labels):
     return mat
     
 
+def generate_topology_net_interaction(targets, labels):
+
+    n_regions = len(labels)
+    labels = np.array(labels)
+    mat = np.zeros((n_regions, n_regions))
+    target_idx = []
+    for target in targets:
+        target_idx.append(
+            np.where(labels == target)[0]
+        )
+    mat_coords = tuple(product(*target_idx))
+    for coords in mat_coords:
+        mat[coords] = 0.5
+        mat[coords[::-1]] = 0.5 # Topology must be symmetric
+
+    return mat
+
 rng = np.random.default_rng()
 import matplotlib.pyplot as plt
 
