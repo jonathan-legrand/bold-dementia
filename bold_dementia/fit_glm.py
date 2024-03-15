@@ -13,7 +13,7 @@ from statsmodels.stats.multitest import fdrcorrection
 from statsmodels.tools.sm_exceptions import ConvergenceWarning
 
 from bold_dementia.connectivity import (
-    Atlas, reshape_pvalues, vec_idx_to_mat_idx, z_transform_to_vec, group_groupby
+    Atlas, reshape_pvalues, vec_idx_to_mat_idx, z_transform_to_vec, group_groupby, edge_format
 )
 from bold_dementia.models.matrix_GLM import fit_edges
 from bold_dementia.data.volumes import add_volumes
@@ -24,7 +24,6 @@ config = get_config()
 
 def make_fc_data(maps_spec, model_spec):
     
-
     maps_path = Path(sys.argv[1]) # This is not great but whatever
     AD_matrices = joblib.load(maps_path / "AD.joblib")
     control_matrices = joblib.load(maps_path / "control.joblib")
@@ -39,29 +38,34 @@ def make_fc_data(maps_spec, model_spec):
         print("BY_BLOCK is True, grouping regions into networks...")
         AD_matrices, _ = group_groupby(AD_matrices, atlas)
         control_matrices, labels = group_groupby(control_matrices, atlas)
+
+        AD_fc = pd.concat(edge_format(block) for block in AD_matrices).reset_index(drop=True)
+        control_fc = pd.concat(edge_format(block) for block in control_matrices).reset_index(drop=True)
+        edges = AD_fc.columns.to_list()
+        
+        fc = pd.concat((AD_fc, control_fc)).reset_index(drop=True)
+        fc = fc.apply(np.arctanh)
         
         # k is named that way because of numpy
         k:int = 0
         
         print("New labels : ", end="")
         print(labels)
+
     else:
         labels = atlas.labels
         k:int = -1
+        AD_vec = np.array([z_transform_to_vec(mat, k) for mat in AD_matrices])
+        control_vec = np.array([z_transform_to_vec(mat, k) for mat in control_matrices])
 
-    
-    AD_vec = np.array([z_transform_to_vec(mat, k) for mat in AD_matrices])
-    control_vec = np.array([z_transform_to_vec(mat, k) for mat in control_matrices])
-
-    fc = np.vstack((AD_vec, control_vec))
-    l = fc.shape[1]
-    if k == -1:
+        fc = np.vstack((AD_vec, control_vec))
+        l = fc.shape[1]
         rows, cols = vec_idx_to_mat_idx(l)
         edges = [f"{labels[i]}_{labels[j]}" for i, j in zip(rows, cols)]
-    else:
-        edges = list(join(all_connectivities(labels)))
+        fc = pd.DataFrame(fc, columns=edges)
 
-    fc = pd.DataFrame(fc, columns=edges)
+    
+    print(fc.head())
     df["AD"] = np.where(df.scan_to_onset < 0, 1, 0)
     df = pd.concat([df.reset_index(drop=True), fc], axis=1, join="inner")
     df = df.drop(df[df.MA == 0].index)

@@ -8,6 +8,11 @@ import pandas as pd
 from bold_dementia.utils.iterables import unique, all_equal
 from bold_dementia.connectivity import Atlas
 
+def edge_format(block):
+    unstacked = block.unstack().reset_index().rename(columns={0: "FC"})
+    unstacked["edge"] = unstacked["node_a"] + "_" + unstacked["node_b"]
+    c = unstacked.loc[:, ["edge", "FC"]]
+    return c.set_index("edge").T
 
 def network_to_network_connectivity(matrix, network_to_idx, pairing_func=combinations):
     """
@@ -83,7 +88,7 @@ def group_groupby(matrices: Iterable, atlas: Atlas) -> Tuple[np.ndarray, list[st
     """
     res = (groupby_blocks(mat, atlas) for mat in matrices)
     blocks, labels = zip(*res)
-    blocks = np.stack([AD_block.values for AD_block in blocks], axis=0)
+    #blocks = np.stack([AD_block.values for AD_block in blocks], axis=0)
     
     assert all_equal(labels)
     labels = labels[0]
