@@ -24,7 +24,8 @@ config = get_config()
 
 def make_fc_data(maps_spec, model_spec):
     
-    maps_path = Path(sys.argv[1]) # This is not great but whatever
+    maps_path = Path(config["connectivity_matrices"]) / sys.argv[1]# This is not great but whatever
+
     AD_matrices = joblib.load(maps_path / "AD.joblib")
     control_matrices = joblib.load(maps_path / "control.joblib")
     atlas = Atlas.from_name(maps_spec["ATLAS"], maps_spec["SOFT"])
@@ -111,7 +112,7 @@ import os
 #os.environ['PYTHONWARNINGS']='ignore::ConvergenceWarning'
 
 def main():
-    maps_path = Path(sys.argv[1])
+    maps_path = Path(config["connectivity_matrices"]) / sys.argv[1]
     model_specs_path = Path(sys.argv[2])
     
     maps_specs = get_config(maps_path / "parameters.yml")
