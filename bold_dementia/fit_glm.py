@@ -157,7 +157,7 @@ def main():
     exppath = save_run(
         parameters,
         lambda df, fname: df.to_csv(fname),
-        {"resdf.csv": resdf},
+        {"resdf.csv": resdf, "tested_population.csv": df},
         dirkey="statresults"
     )
 
