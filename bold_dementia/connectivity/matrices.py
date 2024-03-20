@@ -208,6 +208,9 @@ def plot_ordered_matrix(
     mat = mat.copy()
     n_regions = mat.shape[0]
     mat[list(range(n_regions)), list(range(n_regions))] = 0
+    labels = atlas.labels
+    if "Background" in labels:
+        labels.remove("Background")
     
     # In general we want a colormap that is symmetric around 0
     span = max(abs(mat.min()), abs(mat.max()))
