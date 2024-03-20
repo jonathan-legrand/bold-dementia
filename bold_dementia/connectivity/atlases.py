@@ -28,9 +28,11 @@ def fetch_atlas_m5n33(
         print("Done")
 
     df = pd.read_csv(atlas_csv)
+    labels = df.RSN.to_list()
+    labels.insert(0, "Background")
     atlas_bunch = Bunch(
         maps=atlas_path,
-        labels=df.RSN.to_list(),
+        labels=labels,
         networks=df.Labels.to_list(), # Shitty choice of names I know
         description="Experimental atlas of resting state networks"
     )
