@@ -73,7 +73,10 @@ def make_fc_data(maps_spec, model_spec):
 
     # If the model does not account for subjects, then they should be unique
     if model_spec["GROUPS"] != "sub": 
-        df = df.groupby("sub").sample(n=1, random_state=config["seed"])
+        try:
+            df = df.groupby("sub").sample(n=1, random_state=eval(sys.argv[3]))
+        except IndexError:
+            df = df.groupby("sub").sample(n=1, random_state=config["seed"])
     else:
         print("Using several scans per subect and mixed models")
 
