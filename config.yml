@@ -2,10 +2,6 @@
 data_dir: /homes_unix/jlegrand/data/Memento
 output_dir: /homes_unix/jlegrand/data/Memento/output
 bids_dir: "/georges/memento/BIDS"
-raw_phenotypes: "/bigdata/jlegrand/data/Memento/phenotypes.tsv"
-augmented_phenotypes: "/bigdata/jlegrand/data/Memento/output/augmented_phenotypes.csv"
-merged_phenotypes: "/bigdata/jlegrand/data/Memento/output/merged_phenotypes.csv"
-suite_phenotypes: "/bigdata/jlegrand/data/Memento/data_memento_suite.txt"
 connectivity_matrices: "/homes_unix/jlegrand/data/Memento/output/connectivity"
 statresults: "/homes_unix/jlegrand/data/Memento/output/statresults"
 volumes: /bigdata/jlegrand/data/Memento/intracranial_volumes/20240307_synthseg_volumes.csv

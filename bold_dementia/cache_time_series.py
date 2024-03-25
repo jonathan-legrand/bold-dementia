@@ -12,19 +12,16 @@ from bold_dementia import get_config
 from nilearn.datasets import fetch_atlas_harvard_oxford
 from connectivity.atlases import Atlas
 
-
 config = get_config()
-BIDSDIR = Path(config["bids_dir"])
-PPATH = Path(config["augmented_phenotypes"])
 
-
-# TODO Pass arguments from argv
-def compute_and_cache_ts(atlas):
+def compute_and_cache_ts(atlas:Atlas, bids_dir:Path, ppath:Path):
+    psuffix = ppath.stem
+    
     memento = Memento(
-        BIDSDIR,
-        PPATH,
+        bids_dir,
+        ppath,
         atlas=atlas,
-        cache_dir=BIDSDIR / "derivatives" / atlas.name
+        cache_dir=bids_dir / "derivatives" / (atlas.name + "_" + psuffix),
     )
     if atlas.is_soft:
         print("is_soft is True, default to serial caching")
@@ -33,8 +30,6 @@ def compute_and_cache_ts(atlas):
         print("Using parallel caching")
         memento.parallel_caching(n_jobs=8)
     
-
-# TODO Pass atlas (and destination and ?) as argument to command line
 import sys
 
 if __name__ == "__main__":
@@ -42,4 +37,15 @@ if __name__ == "__main__":
     if not isinstance(is_soft, bool):
         raise TypeError("is_soft should be in {True, False}")
     atlas = Atlas.from_name(sys.argv[1], soft=eval(sys.argv[2]))
-    compute_and_cache_ts(atlas)
+    try:
+        pname = sys.argv[3]
+    except IndexError:
+        print("Using default merged phenotypes")
+        pname = "merged_phenotypes.csv"
+    
+    ppath = Path(config["data_dir"]) / pname
+    print(f"Using phenotypes from {ppath}")
+
+    bids_dir = Path(config["bids_dir"])
+    
+    compute_and_cache_ts(atlas, bids_dir, ppath)

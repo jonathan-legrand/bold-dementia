@@ -49,8 +49,6 @@ class Memento(torch.utils.data.Dataset):
         atlas:Atlas=None,
         cache_dir="dataset_cache",
         clean_signal=False,
-        augmented_phenotypes=False,
-        merged_phenotypes=True,
         **confounds_kw
     ):
         
@@ -60,11 +58,7 @@ class Memento(torch.utils.data.Dataset):
         self.masker = atlas.fit_masker()
 
         self.scans_ = self.index_bids(bids_path)
-        self.phenotypes_ = self.load_phenotypes(
-            phenotypes_path,
-            augmented=augmented_phenotypes,
-            merged=merged_phenotypes
-        )
+        self.phenotypes_ = self.load_phenotypes(phenotypes_path)
         self.rest_dataset = self.make_rest_dataset(self.scans_, self.phenotypes_)
         
 
@@ -93,40 +87,25 @@ class Memento(torch.utils.data.Dataset):
         
     
     @staticmethod
-    def load_phenotypes(ppath, merged=True, augmented=True):
+    def load_phenotypes(ppath, date_format=None, timepoints=None, **loading_kwargs):
         # No more cases please
-        if merged:
-            phenotypes = pd.read_csv(
-                ppath,
-                index_col=0
-            )
-            format = "%d/%m/%Y"
-            
-        elif augmented:
-            phenotypes = pd.read_csv(
-                ppath,
-                index_col=0
-            )
-            format = None
-        else:
-            phenotypes = pd.read_csv(
-                ppath,
-                sep="\t",
-                encoding="unicode_escape",
-            )
-            format = "%d/%m/%Y"
+        if "index_col" not in loading_kwargs.keys():
+            loading_kwargs["index_col"] = 0
+        phenotypes = pd.read_csv(
+            ppath,
+            **loading_kwargs
+        )
+        if timepoints is None:
+            timepoints = {"M000", "M024", "M048"}
 
         # I don't trust date parsing in read_csv
         for date_col in {
                 "DEMENCE_DAT",
                 "INCCONSDAT_D",
-                "IRM_M0",
-                "IRM_M24",
-                "IRM_M48"
-            }:
+            }.union(timepoints):
             phenotypes[date_col] = pd.to_datetime(
                 phenotypes[date_col],
-                format=format
+                format=date_format
             )
 
         phenotypes["sub"] = phenotypes["NUM_ID"].map(lambda x: x[4:])
