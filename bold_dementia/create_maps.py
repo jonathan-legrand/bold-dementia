@@ -54,7 +54,7 @@ def create_maps(run_config):
         cache_dir = run_config["cache_dir"]
     except KeyError:
         cache_dir = Path(config["bids_dir"]) / "derivatives" / f"{atlas.name}"
-    print(f"Fectching time series in {cache_dir}")
+    print(f"Fetching time series in {cache_dir}")
 
     memento = MementoTS(cache_dir=cache_dir, target_func=lambda row: row)
 
