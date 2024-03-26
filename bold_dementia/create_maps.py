@@ -30,7 +30,6 @@ from bold_dementia import get_config
 from bold_dementia.utils.saving import save_run
 
 
-# TODO Add possibility to override default conf
 config = get_config()
 
 def compute_cov_prec(time_series):
@@ -51,7 +50,12 @@ def create_maps(run_config):
         run_config["ATLAS"],
         run_config["SOFT"]
     )
-    cache_dir = Path(config["bids_dir"]) / "derivatives" / f"{atlas.name}"
+    try:
+        cache_dir = run_config["cache_dir"]
+    except KeyError:
+        cache_dir = Path(config["bids_dir"]) / "derivatives" / f"{atlas.name}"
+    print(f"Fectching time series in {cache_dir}")
+
     memento = MementoTS(cache_dir=cache_dir, target_func=lambda row: row)
 
     with warnings.catch_warnings(category=FutureWarning, action="ignore"):
