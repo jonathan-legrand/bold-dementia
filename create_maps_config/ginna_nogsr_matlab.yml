@@ -1,0 +1,9 @@
+# COMPARE MAPS DEFAULT RUN
+confounds_strategy:
+  strategy: ["high_pass", "motion", "wm_csf"]
+SOFT: False
+ATLAS: "GINNA"
+CLEAN_SIGNAL: True
+MACRO_LABELS: False
+NAME: "no-gsr_matlab"
+BALANCE_STRAT: []

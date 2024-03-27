@@ -5,6 +5,6 @@ SOFT: False
 ATLAS: "gillig"
 CLEAN_SIGNAL: True
 MACRO_LABELS: False
-NAME: "retest"
+NAME: "test"
 BALANCE_STRAT: []
-cache_dir:  "/georges/memento/BIDS/derivatives/gillig_retest"
+cache_dir:  "/georges/memento/BIDS/derivatives/gillig_test"

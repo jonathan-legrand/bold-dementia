@@ -192,6 +192,7 @@ atlas_mapping = {
     "AICHA": fetch_aicha,
     "rsn41": fetch_atlas_rsn41, # Keep former name for compatibility reasons
     "gillig": fetch_atlas_m5n33,
+    "GINNA": fetch_atlas_m5n33, # Always gillig in my heart
     "gillig-regions": fetch_atlas_m5n33_regions,
     "harvard-oxford": lambda : datasets.fetch_atlas_harvard_oxford("cort-maxprob-thr25-2mm"),
     "schaeffer": lambda : datasets.fetch_atlas_schaefer_2018(resolution_mm=2),
