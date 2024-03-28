@@ -6,4 +6,5 @@ ATLAS: "gillig-regions"
 CLEAN_SIGNAL: True
 MACRO_LABELS: False
 NAME: "no-gsr_matlab"
-BALANCE_STRAT: ["complete_subs_only"]
+cache_dir:  "/georges/memento/BIDS/derivatives/gillig-regions_merged_phenotypes"
+BALANCE_STRAT: []
