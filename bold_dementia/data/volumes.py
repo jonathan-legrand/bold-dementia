@@ -2,8 +2,8 @@ import pandas as pd
 
 def load_volumes(vpath):
     volumes = pd.read_csv(vpath)
-    volumes.loc[:, "Sub_ID"] = volumes.loc[:, "Sub_ID"].map(lambda x: x.split("-")[-1])
-    volumes["sub"] = volumes.loc[:, "Sub_ID"].map(lambda x: int(x[4:]))
+    volumes.loc[:, "subject"] = volumes.loc[:, "subject"].map(lambda x: x.split("-")[-1])
+    volumes["sub"] = volumes.loc[:, "subject"].map(lambda x: int(x[4:]))
     return volumes
 
 def add_volumes(df, vpath, raise_on_loss=True):
