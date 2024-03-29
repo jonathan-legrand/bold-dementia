@@ -248,7 +248,7 @@ class Atlas(Bunch):
         else:
             masker = NiftiLabelsMasker(
                 labels_img=self.maps,
-                labels=self.labels, # TODO Test that
+                #labels=self.labels, # TODO Test that
                 **masker_kw
             )
         masker.fit()
