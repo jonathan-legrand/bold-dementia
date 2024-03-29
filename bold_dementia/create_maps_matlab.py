@@ -3,7 +3,6 @@ from pathlib import Path
 import os
 import json
 import joblib
-from typing import Callable
 
 import pandas as pd
 import nibabel as nib
@@ -12,8 +11,7 @@ import seaborn as sns
 import numpy as np
 import numpy.linalg as npl
 import math
-import random
-from scipy.stats import ttest_ind
+from scipy.io import savemat
 from statsmodels.stats.multitest import fdrcorrection
 
 from sklearn.utils import Bunch
@@ -23,14 +21,14 @@ from nilearn.connectome import ConnectivityMeasure
 from nilearn import plotting
 
 from bold_dementia.data.study import balance_control, balance_control_cat, load_signals
-from bold_dementia.data.memento import Memento, MementoTS, past_diag_AD, healthy_control
+from bold_dementia.data.memento import Memento, MementoTS, past_diag_AD, healthy_control, converter
 from bold_dementia.connectivity.atlases import Atlas
 from bold_dementia.connectivity.matrices import plot_matrices, reshape_pvalues
 from bold_dementia import get_config
 from bold_dementia.utils.saving import save_run
 
+# TODO Merge with normal create_maps
 
-# TODO Add possibility to override default conf
 config = get_config()
 
 def compute_cov_prec(time_series):
@@ -61,7 +59,7 @@ def create_maps(run_config):
     with warnings.catch_warnings(category=FutureWarning, action="ignore"):
         AD_signals_ub, control_signals_ub, pm, nm = load_signals(
             memento,
-            past_diag_AD, # We are only interested in healthy subjects
+            converter,
             healthy_control,
             clean_signal=run_config["CLEAN_SIGNAL"],
             confounds_strategy=run_config["confounds_strategy"]
@@ -111,7 +109,6 @@ def create_maps(run_config):
         "control_series_ub.csv": nm,
     }
 
-    from scipy.io import savemat
     def to_matlab(obj, path):
         savemat(path, {"matrices": obj}, appendmat=False)
 
