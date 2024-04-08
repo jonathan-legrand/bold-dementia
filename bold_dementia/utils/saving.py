@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import Callable
 from bold_dementia import get_config
 
-config = get_config()
+config = get_config("/bigdata/jlegrand/AD-prediction/config.yml")
 
 def save_run(
     run_config: str,
