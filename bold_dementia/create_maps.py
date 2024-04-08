@@ -32,11 +32,11 @@ from bold_dementia.utils.saving import save_run
 
 config = get_config()
 
-def compute_cov_prec(time_series):
+def compute_cov_prec(time_series, kind="covariance"):
 
     pipe = ConnectivityMeasure(
         covariance.LedoitWolf(),
-        kind="covariance"
+        kind=kind
     )
     
     c = pipe.fit_transform(time_series)
@@ -84,8 +84,10 @@ def create_maps(run_config):
     n = len(time_series)
     print(f"Study on {n} subjects")
     
-    print("Computing covariance", end="... ")
-    gcov = compute_cov_prec(time_series)
+    kind = run_config["KIND"] if "KIND" in run_config.keys() else "covariance"
+    print(f"Computing connectivity with {kind}", end="... ")
+    gcov = compute_cov_prec(time_series, kind=kind)
+        
     print("Finished, exporting results")
 
     joblib_export = {
