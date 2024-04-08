@@ -60,7 +60,6 @@ def main():
     model_specs = get_config(model_specs_path)
     print(model_specs)
 
-    maps_path = Path(config["connectivity_matrices"]) / sys.argv[1]
     df, edges, parameters = make_fc_data(maps_path, maps_specs, model_specs)
     print(df.head())
 
