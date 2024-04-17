@@ -4,7 +4,6 @@ output_dir: /homes_unix/jlegrand/data/Memento/output
 bids_dir: "/georges/memento/BIDS"
 connectivity_matrices: "/homes_unix/jlegrand/data/Memento/output/connectivity"
 statresults: "/homes_unix/jlegrand/data/Memento/output/statresults"
-#volumes: /bigdata/jlegrand/data/Memento/intracranial_volumes/20240307_synthseg_volumes.csv
 volumes: "/bigdata/jlegrand/data/Memento/volumes.csv"
 custom_atlases : /homes_unix/jlegrand/data/Memento/atlas
 
