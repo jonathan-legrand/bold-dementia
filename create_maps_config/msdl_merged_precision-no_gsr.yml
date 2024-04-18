@@ -1,0 +1,11 @@
+# COMPARE MAPS DEFAULT RUN
+confounds_strategy:
+  strategy: ["high_pass", "motion", "wm_csf"]
+SOFT: True
+ATLAS: "msdl"
+CLEAN_SIGNAL: True
+MACRO_LABELS: False
+NAME: "merged-precision-no-gsr"
+BALANCE_STRAT: []
+cache_dir: "/georges/memento/BIDS/derivatives/msdl_merged_phenotypes"
+KIND: "precision"
