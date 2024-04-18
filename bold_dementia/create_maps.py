@@ -32,18 +32,35 @@ from bold_dementia.utils.saving import save_run
 
 config = get_config()
 
+from nilearn.connectome import GroupSparseCovariance
+
 def compute_cov_prec(time_series, kind="covariance"):
 
-    pipe = ConnectivityMeasure(
-        covariance.LedoitWolf(),
-        kind=kind
-    )
-    
-    c = pipe.fit_transform(time_series)
-    return Bunch(
+    if kind == "group":
+        gsc = GroupSparseCovariance(
+            alpha=0.01,
+            verbose=5,
+            max_iter=5,
+            memory="/tmp/memento_cache",
+            memory_level=2
+        )
+        gsc.fit(time_series)
+        c = np.transpose(gsc.covariances_, (2, 0, 1))
+        p = np.transpose(gsc.precisions_, (2, 0, 1))
+    else:
+        pipe = ConnectivityMeasure(
+            covariance.LedoitWolf(),
+            kind=kind
+        )
+        c = pipe.fit_transform(time_series)
+        p = npl.inv(c)
+
+    bunch = Bunch(
         covariances_=c,
-        precisions_=npl.inv(c) # I don't like this
+        precisions_=p
     )
+    return bunch
+
 
 def create_maps(run_config):
     atlas = Atlas.from_name(
@@ -67,10 +84,28 @@ def create_maps(run_config):
             confounds_strategy=run_config["confounds_strategy"]
         )
 
-    if run_config["BALANCE_STRAT"] != []:
-        raise NotImplementedError(
-            "This is left as an exercise to the reader. \
-                Alternatively use the notebook.")
+    balance_strat = run_config["BALANCE_STRAT"]
+    if balance_strat != []:
+        print(f"Balancing for {balance_strat}")
+        balanced_AD, balanced_meta = pm, nm
+
+        if "sub" in balance_strat:
+            balanced_AD = balanced_AD.groupby("sub").sample(n=1, random_state=1234)
+            balanced_meta = balanced_meta.groupby("sub").sample(n=1, random_state=1234)
+
+        # Balanced age and sex accross groups
+        if "AGE" in balance_strat:
+            balanced_AD, balanced_meta = balance_control(
+                balanced_AD,
+                balanced_meta,
+                col_name="current_scan_age"
+            )
+        if "SEX" in balance_strat:
+            balanced_AD, balanced_meta = balance_control_cat(
+                balanced_AD,
+                balanced_meta,
+                col_name="SEX"
+            )
     else:
         balanced_AD, balanced_meta = pm, nm
 
@@ -92,7 +127,9 @@ def create_maps(run_config):
 
     joblib_export = {
         "AD.joblib": gcov.covariances_[AD_indices, :, :],
+        "AD_prec.joblib": gcov.precisions_[AD_indices, :, :],
         "control.joblib": gcov.covariances_[control_indices, :, :],
+        "control_prec.joblib": gcov.precisions_[control_indices, :, :],
         "AD_series_ub.joblib": AD_signals_ub,
         "control_series_ub.joblib": control_signals_ub
     }
