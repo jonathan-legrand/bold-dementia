@@ -28,7 +28,7 @@ from joblib import Memory, Parallel, delayed
 memory = Memory("/tmp/Memento/dataset_cache")
 
 def converter(row):
-    return ~pd.isnull(row.DEMENCE_DAT)
+    return not pd.isnull(row.DEMENCE_DAT)
 
 def past_diag_AD(row):
     return past_diag(row) and row.MA != 0
@@ -36,11 +36,17 @@ def past_diag_AD(row):
 def past_diag(row):
     return row.scan_to_onset <= 0
 
-def healthy_control(row):
+def control(row):
     return math.isnan(row.scan_to_onset)
 
 def non_demented(row):
     return row.scan_to_onset < 0
+
+def control_M000(row):
+    return control(row) and row.ses == "M000"
+
+def converter_M000(row):
+    return converter(row) and row.ses == "M000"
 
 # TODO Type annotations
 # TODO Custom target func like MementoTS
