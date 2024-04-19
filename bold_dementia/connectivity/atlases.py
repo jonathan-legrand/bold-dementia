@@ -203,6 +203,10 @@ atlas_mapping = {
     "msdl": datasets.fetch_atlas_msdl
 }
 
+is_soft_mapping = {
+    "schaeffer200": False,
+    "msdl": True
+}
 
 class Atlas(Bunch):
     @classmethod
@@ -214,7 +218,9 @@ class Atlas(Bunch):
         return new
     
     @classmethod
-    def from_name(cls, name, soft):
+    def from_name(cls, name, soft=None):
+        if soft is None:
+            soft = is_soft_mapping[name] 
         atlas_kwargs = atlas_mapping[name]()
         new = cls(**atlas_kwargs)
         new.is_soft = soft
