@@ -23,7 +23,7 @@ from nilearn.connectome import ConnectivityMeasure
 from nilearn import plotting
 
 from bold_dementia.data.study import balance_control, balance_control_cat, load_signals
-from bold_dementia.data.memento import MementoTS, past_diag_AD, control_M000, converter_M000
+from bold_dementia.data.memento import MementoTS, past_diag_AD, control_M000, converter_M000, converter, control
 from bold_dementia.connectivity.atlases import Atlas
 from bold_dementia.connectivity.matrices import plot_matrices, reshape_pvalues
 from bold_dementia import get_config

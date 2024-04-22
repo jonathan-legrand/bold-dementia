@@ -24,12 +24,14 @@ config = get_config("/bigdata/jlegrand/AD-prediction/config.yml") #Awful
 
 def make_fc_data(maps_path, maps_spec, model_spec):
     
-    AD_matrices = joblib.load(maps_path / "AD.joblib")
-    control_matrices = joblib.load(maps_path / "control.joblib")
+    pos = maps_spec["posfunc"]
+    neg = maps_spec["negfunc"]
+    AD_matrices = joblib.load(maps_path / f"{pos}.joblib")
+    control_matrices = joblib.load(maps_path / f"{neg}.joblib")
     atlas = Atlas.from_name(maps_spec["ATLAS"], maps_spec["SOFT"])
 
-    AD_df = pd.read_csv(maps_path / "balanced_AD.csv", index_col=0)
-    control_df = pd.read_csv(maps_path / "balanced_control.csv", index_col=0)
+    AD_df = pd.read_csv(maps_path / f"balanced_{pos}.csv", index_col=0)
+    control_df = pd.read_csv(maps_path / f"balanced_{neg}.csv", index_col=0)
     df = pd.concat((AD_df, control_df))
 
     # Whether to perform analysis on a network level to tame FDR
@@ -65,7 +67,7 @@ def make_fc_data(maps_path, maps_spec, model_spec):
 
     
     print(fc.head())
-    df["AD"] = np.where(df.scan_to_onset < 0, 1, 0)
+    df["AD"] = np.where(df.scan_to_onset < 0, 1, 0) # This is not flexible enough
     df = pd.concat([df.reset_index(drop=True), fc], axis=1, join="inner")
     df = df.drop(df[df.MA == 0].index)
 

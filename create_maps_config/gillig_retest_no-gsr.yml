@@ -1,0 +1,12 @@
+# COMPARE MAPS DEFAULT RUN
+confounds_strategy:
+  strategy: ["high_pass", "motion", "wm_csf"]
+SOFT: False
+ATLAS: "gillig"
+CLEAN_SIGNAL: True
+MACRO_LABELS: False
+NAME: "retest_no-gsr"
+BALANCE_STRAT: []
+cache_dir:  "/georges/memento/BIDS/derivatives/gillig_retest"
+posfunc: "past_diag_AD"
+negfunc: "control"
