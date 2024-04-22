@@ -27,6 +27,12 @@ session_mapping = {
 from joblib import Memory, Parallel, delayed
 memory = Memory("/tmp/Memento/dataset_cache")
 
+def all_subs(row):
+    return True
+
+def delete_me(row):
+    return False
+
 def converter(row):
     return not pd.isnull(row.DEMENCE_DAT)
 

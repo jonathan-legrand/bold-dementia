@@ -7,3 +7,6 @@ CLEAN_SIGNAL: True
 MACRO_LABELS: False
 NAME: "no-gsr_matlab"
 BALANCE_STRAT: []
+cache_dir: "/georges/memento/BIDS/derivatives/gillig_merged_phenotypes"
+posfunc: "all_subs"
+negfunc: "delete_me"

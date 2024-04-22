@@ -21,7 +21,9 @@ from nilearn.connectome import ConnectivityMeasure
 from nilearn import plotting
 
 from bold_dementia.data.study import balance_control, balance_control_cat, load_signals
-from bold_dementia.data.memento import Memento, MementoTS, past_diag_AD, healthy_control, converter
+from bold_dementia.data.memento import (
+    Memento, MementoTS, past_diag_AD, converter, all_subs, delete_me
+)
 from bold_dementia.connectivity.atlases import Atlas
 from bold_dementia.connectivity.matrices import plot_matrices, reshape_pvalues
 from bold_dementia import get_config
@@ -55,12 +57,14 @@ def create_maps(run_config):
         cache_dir = Path(config["bids_dir"]) / "derivatives" / f"{atlas.name}"
     print(f"Fetching time series in {cache_dir}")
     memento = MementoTS(cache_dir=cache_dir, target_func=lambda row: row)
-
+    posfunc_name = run_config["posfunc"] if "posfunc" in run_config.keys() else "converter"
+    negfunc_name = run_config["negfunc"] if "negfunc" in run_config.keys() else "control"
+    print(f"Selecting with {posfunc_name} and {negfunc_name}")
     with warnings.catch_warnings(category=FutureWarning, action="ignore"):
         AD_signals_ub, control_signals_ub, pm, nm = load_signals(
             memento,
-            converter,
-            healthy_control,
+            eval(posfunc_name),
+            eval(negfunc_name),
             clean_signal=run_config["CLEAN_SIGNAL"],
             confounds_strategy=run_config["confounds_strategy"]
         )
@@ -97,16 +101,16 @@ def create_maps(run_config):
     print("Finished, exporting results")
 
     mat_export = {
-        "AD.mat": gcov.covariances_[AD_indices, :, :],
-        "control.mat": gcov.covariances_[control_indices, :, :],
-        "AD_series_ub.mat": AD_signals_ub,
-        "control_series_ub.mat": control_signals_ub
+        f"{posfunc_name}.mat": gcov.covariances_[AD_indices, :, :],
+        f"{negfunc_name}.mat": gcov.covariances_[control_indices, :, :],
+        f"{posfunc_name}_series_ub.mat": AD_signals_ub,
+        f"{negfunc_name}_series_ub.mat": control_signals_ub
     }
     csv_export = {
-        "balanced_AD.csv": balanced_AD,
-        "balanced_control.csv": balanced_meta,
-        "AD_series_ub.csv": pm,
-        "control_series_ub.csv": nm,
+        f"balanced_{posfunc_name}.csv": balanced_AD,
+        f"balanced_{negfunc_name}.csv": balanced_meta,
+        f"{posfunc_name}_series_ub.csv": pm,
+        f"{negfunc_name}_series_ub.csv": nm,
     }
 
     def to_matlab(obj, path):

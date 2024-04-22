@@ -3,7 +3,6 @@ from pathlib import Path
 import os
 import json
 import joblib
-from typing import Callable
 
 import pandas as pd
 import nibabel as nib
@@ -12,8 +11,6 @@ import seaborn as sns
 import numpy as np
 import numpy.linalg as npl
 import math
-import random
-from scipy.stats import ttest_ind
 from statsmodels.stats.multitest import fdrcorrection
 
 from sklearn.utils import Bunch
@@ -72,9 +69,7 @@ def create_maps(run_config):
     except KeyError:
         cache_dir = Path(config["bids_dir"]) / "derivatives" / f"{atlas.name}"
     print(f"Fetching time series in {cache_dir}")
-
     memento = MementoTS(cache_dir=cache_dir, target_func=lambda row: row)
-
     posfunc_name = run_config["posfunc"] if "posfunc" in run_config.keys() else "converter"
     negfunc_name = run_config["negfunc"] if "negfunc" in run_config.keys() else "control"
     print(f"Selecting with {posfunc_name} and {negfunc_name}")
