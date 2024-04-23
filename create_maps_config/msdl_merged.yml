@@ -8,3 +8,5 @@ MACRO_LABELS: False
 NAME: "merged"
 BALANCE_STRAT: []
 cache_dir: "/georges/memento/BIDS/derivatives/msdl_merged_phenotypes"
+posfunc: "past_diag_AD"
+negfunc: "control"
