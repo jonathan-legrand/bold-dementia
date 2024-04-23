@@ -46,16 +46,21 @@ def run_test(df, edges, model_spec):
         test_results = parallel(delayed(fit_df)(edge) for edge in edges)
     return test_results
 
+def merge_configs(maps_specs, model_specs):
+    maps_name = maps_specs.pop("NAME")
+    model_name = model_specs.pop("NAME")
+    parameters = {**model_specs, **maps_specs}
+    parameters["NAME"] = maps_name + "_" + model_name
+    return parameters
+    
+
 def export_results(results, edges, maps_specs, model_specs):
     stats, pvalues = zip(*results)
 
     print(f"Correcting FDR with {len(pvalues)} comparisons")
     _, pvalues_corr = fdrcorrection(pvalues)
-
-    maps_name = maps_specs.pop("NAME")
-    model_name = model_specs.pop("NAME")
-    parameters = {**model_specs, **maps_specs}
-    parameters["NAME"] = maps_name + "_" + model_name
+    parameters = merge_config(maps_specs, model_specs)
+    
     
     # The original matrix ordering is preserved 
     # when no groupby happened,
