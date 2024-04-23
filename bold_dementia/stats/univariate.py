@@ -59,7 +59,7 @@ def export_results(results, edges, maps_specs, model_specs):
 
     print(f"Correcting FDR with {len(pvalues)} comparisons")
     _, pvalues_corr = fdrcorrection(pvalues)
-    parameters = merge_config(maps_specs, model_specs)
+    parameters = merge_configs(maps_specs, model_specs)
     
     
     # The original matrix ordering is preserved 
