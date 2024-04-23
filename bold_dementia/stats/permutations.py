@@ -12,7 +12,7 @@ import pandas as pd
 def generate_null(
     df:dict,
     edges:dict,
-    paramters:dict,
+    parameters:dict,
     N:int=100,
     seed:int=1234
     ):
