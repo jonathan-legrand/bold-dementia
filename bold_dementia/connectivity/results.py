@@ -13,7 +13,10 @@ def pivot_resdf(resdf, alpha=0.05):
     resdf_pv = resdf.pivot(index="node_a" ,columns=["node_b"], values=["beta_AD", "pvalues_raw", "pvalues_fdr", "thresholded_beta"])
     return resdf_pv
     
-def edges_to_matrix(df):
+def edges_to_matrix(df:pd.DataFrame):
+    """
+    Transform edge values into a full, symmetric, node to node comparison matrix
+    """
     df["node_a"] = df["edges"].map(lambda edge: edge.split("_")[0])
     df["node_b"] = df["edges"].map(lambda edge: edge.split("_")[1])
     swapped = df.rename(columns={"node_a": "node_b", "node_b": "node_a"})
