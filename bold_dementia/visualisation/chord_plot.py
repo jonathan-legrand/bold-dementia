@@ -1,20 +1,20 @@
 from pycirclize import Circos
 import math
 
-def make_links(matrix_df):
+def make_links(matrix_df, zoom=10):
     links = []
 
     for source, row in matrix_df.iterrows():
         for target_rsn, val in row.items():
-            if math.isclose(val, 0):
+            if math.isclose(val, 0) or math.isnan(val):
                 continue
             elif val > 0:
                 colour = "red"
             elif val < 0:
                 colour = "blue"
 
-            offset = abs((10 * val))
-            assert offset < 10
+            offset = abs((zoom * val))
+            assert offset < 10, f"{source} -> {target_rsn}, Offset = {offset}"
             print(source, target_rsn, val, offset)
             if source != target_rsn:
                 links.append(
