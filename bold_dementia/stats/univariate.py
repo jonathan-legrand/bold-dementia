@@ -46,6 +46,20 @@ def run_test(df, edges, model_spec):
         test_results = parallel(delayed(fit_df)(edge) for edge in edges)
     return test_results
 
+def run_test_serial(df, edges, model_spec):
+    test_df = df.dropna(subset=["NIVETUD"])
+    display_df_report(test_df)
+    fit_df = lambda edge: fit_edges(
+        edge, test_df, model_spec["RHS_FORMULA"], model_spec["GROUPS"]
+    )
+    
+
+    # TODO This is awfully slow for mixed models and has convergence issues
+    # Change optimizer in statsmodel perhaps?
+    with warnings.catch_warnings(category=ConvergenceWarning, action="ignore"):
+        test_results = [fit_df(edge) for edge in edges]
+    return test_results
+
 def merge_configs(maps_specs, model_specs):
     maps_name = maps_specs.pop("NAME")
     model_name = model_specs.pop("NAME")
