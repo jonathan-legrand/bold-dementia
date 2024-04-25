@@ -27,7 +27,8 @@ def generate_null(
     edges:dict,
     parameters:dict,
     N:int=100,
-    seed:int=1234
+    seed:int=1234,
+    n_jobs=8
     ):
 
     random.seed(seed)
@@ -45,7 +46,7 @@ def generate_null(
         stats, pvalues = zip(*results)
         return stats
         
-    parallel = joblib.Parallel(verbose=2, n_jobs=8)
+    parallel = joblib.Parallel(verbose=2, n_jobs=n_jobs)
     calls = (joblib.delayed(single_call)(permutation) for permutation in permutation_scheme)
     permuted_slopes = parallel(calls)
 
