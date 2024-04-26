@@ -205,7 +205,8 @@ atlas_mapping = {
 
 is_soft_mapping = {
     "schaeffer200": False,
-    "msdl": True
+    "msdl": True,
+    "GINNA": False
 }
 
 class Atlas(Bunch):
