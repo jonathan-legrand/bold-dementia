@@ -32,6 +32,7 @@ def main():
 
     df, edges, parameters = make_fc_data(maps_path, maps_specs, model_specs)
     
+    # Experimental dask version which has not met so much success
     #cluster = SLURMCluster(
     #    cores=4,
     #    processes=4,
@@ -44,13 +45,13 @@ def main():
     #print(client.dashboard_link)
     #with joblib.parallel_backend('dask', scatter=[df]):
     permuted_slopes, _ = generate_null(
-        df, edges, parameters, N=1000, seed=config["seed"]
+        df, edges, parameters, N=10000, seed=config["seed"], n_jobs=8
     )
     params = merge_configs(maps_specs, model_specs)
     export_path = save_run(
         params,
         lambda obj, path: obj.to_csv(path),
-        {"null_distribution.csv": permuted_slopes,},
+        {"null_distribution_1000.csv": permuted_slopes,},
         dirkey="statresults"
     )
     print(f"Saved results in {export_path}")
