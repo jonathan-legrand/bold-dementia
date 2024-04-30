@@ -107,7 +107,7 @@ def export_results(results, edges, maps_specs, model_specs):
     print(exppath)
 
 
-def make_fc_data(maps_path, maps_spec, model_spec):
+def make_fc_data(maps_path, maps_spec, model_spec, seed=1234):
     
     pos = maps_spec["posfunc"]
     neg = maps_spec["negfunc"]
@@ -158,10 +158,7 @@ def make_fc_data(maps_path, maps_spec, model_spec):
 
     # If the model does not account for subjects, then they should be unique
     if model_spec["GROUPS"] != "sub": 
-        try:
-            df = df.groupby("sub").sample(n=1, random_state=eval(sys.argv[3]))
-        except IndexError:
-            df = df.groupby("sub").sample(n=1, random_state=1234)
+        df = df.groupby("sub").sample(n=1, random_state=seed)
     else:
         print("Using several scans per subect and mixed models")
 

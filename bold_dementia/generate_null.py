@@ -1,5 +1,6 @@
 import sys
 from pathlib import Path
+import argparse
 import warnings
 from bold_dementia import get_config
 
@@ -15,47 +16,84 @@ from bold_dementia.models.matrix_GLM import fit_edges
 from bold_dementia.data.volumes import add_volumes
 from utils.saving import save_run
 from utils.iterables import join, all_connectivities
-from bold_dementia.stats.permutations import generate_null
+from bold_dementia.stats.permutations import generate_null, generate_null_dask
 from bold_dementia.stats.univariate import make_fc_data, merge_configs
 
 config = get_config()
 
+def init_argparse() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(description="Generate empirical null distribution with permutations")
+    parser.add_argument(
+        "maps_name",
+        help="Name of maps dir in the connectivity directory"
+    )
+    parser.add_argument(
+        "model_spec_path",
+        help="Path to the yaml specification of the linear model to be fit on edges"
+    )
+
+    parser.add_argument(
+        "--n_permutations",
+        help="Number of point in the null distribution",
+        type=int,
+        default=5000
+    )
+    
+    parser.add_argument(
+        "--use_dask",
+        help="Set to True to use dask to submit jobs on SLURM",
+        type=bool,
+        default=False
+    )
+
+    parser.add_argument(
+        "--seed",
+        help="Custom seed for scan selection when there are multiple scans per subject",
+        type=int,
+        default=config["seed"]
+    )
+    return parser
 
 
-def main():
-    maps_path = Path(config["connectivity_matrices"]) / sys.argv[1]
-    model_specs_path = Path(sys.argv[2])
+def generate_and_export(maps_name, model_specs_path, n_permutations, use_dask, seed):
+    maps_path = Path(config["connectivity_matrices"]) / maps_name
     
     maps_specs = get_config(maps_path / "parameters.yml")
     model_specs = get_config(model_specs_path)
     print(model_specs)
 
-    df, edges, parameters = make_fc_data(maps_path, maps_specs, model_specs)
+    df, edges, parameters = make_fc_data(maps_path, maps_specs, model_specs, seed=seed)
     
-    # Experimental dask version which has not met so much success
-    #cluster = SLURMCluster(
-    #    cores=4,
-    #    processes=4,
-    #    memory="20GB",
-    #    job_mem='500MB',
-    #    walltime="03:00:00",
-    #)
-    #client = cluster.get_client()
-    #cluster.scale(jobs=10)
-    #print(client.dashboard_link)
-    #with joblib.parallel_backend('dask', scatter=[df]):
-    permuted_slopes, _ = generate_null(
-        df, edges, parameters, N=10000, seed=config["seed"], n_jobs=8
-    )
+    # Experimental dask version
+    if use_dask:
+        with SLURMCluster(
+            cores=1,
+            memory="1GB",
+            walltime="00:05:00",
+            log_directory="/homes_unix/jlegrand/dask_logs"
+        ) as cluster:
+            cluster.scale(10)
+            client = Client(cluster)
+            permuted_slopes, permutation_scheme = generate_null_dask(
+                df, edges, parameters, client, N=n_permutations
+            )
+    else:
+        permuted_slopes, _ = generate_null(
+            df, edges, parameters, N=100, seed=seed, n_jobs=8
+        )
     params = merge_configs(maps_specs, model_specs)
     export_path = save_run(
         params,
         lambda obj, path: obj.to_csv(path),
-        {"null_distribution_1000.csv": permuted_slopes,},
+        {f"null_distribution_{n_permutations}.csv": permuted_slopes,},
         dirkey="statresults"
     )
     print(f"Saved results in {export_path}")
 
 
 if __name__ == "__main__":
-    main()
+    
+    parser = init_argparse()
+    args = parser.parse_args()
+    print(args)
+    generate_and_export(*vars(args).values())

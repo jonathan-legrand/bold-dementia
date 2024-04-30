@@ -56,57 +56,45 @@ def generate_null(
     permuted_slopes["edge"] = edges
     return permuted_slopes, permutation_scheme
 
+from dask.distributed import Client, progress
+
 def generate_null_dask(
     df:dict,
     edges:dict,
     parameters:dict,
+    client:Client,
     N:int=100,
-    seed:int=1234
+    seed:int=1234,
     ):
-
+    
     random.seed(seed)
+    
     idx_range = list(range(len(df)))
     permutation_scheme = [
         random.sample(idx_range, k=len(idx_range)) for _ in range(N)
     ]
 
-    cluster = SLURMCluster(
-                        cores=4,
-                        processes=4,
-                        memory="10GB",
-                        job_mem='5GB',
-                        walltime="03:00:00",
-                        log_directory="/tmp"
-                       )
+    def single_call(permutation):
+        import sys
+        sys.path.append("/homes_unix/jlegrand/AD-prediction")
+        from bold_dementia.stats.univariate import run_test_serial
 
-    client = cluster.get_client()
-    print(client)
-    cluster.scale(jobs=10)
- 
-    
-    def single_call(df, permutation, edges, parameters):
         permuted_target = df.loc[permutation, "AD"].reset_index(drop=True)
         permuted_df = df.copy()
         permuted_df["AD"] = permuted_target
-        
         results = run_test_serial(permuted_df, edges, parameters)
         stats, pvalues = zip(*results)
         return stats
-        
-    permuted_slopes = []
-    for permutation in permutation_scheme:
-        output = delayed(single_call)(df, permutation, edges, parameters)
-        permuted_slopes.append(
-            da.from_delayed(output, shape=(len(edges),), dtype=float)
-        )
     
-    output = da.stack(permuted_slopes, axis=1)
-    permuted_slopes = dd.from_dask_array(output, columns=[f"p_{i}" for i in range(N)])
-    permuted_slopes.compute()
+    print(client)
 
-    #@permuted_slopes = pd.DataFrame(
-    #    da.stack(permuted_slopes, axis=1), columns=[f"p_{i}" for i in range(N)]
-    #)
+    futures = client.map(single_call, permutation_scheme)
+    progress(futures, notebook=False)
+    permuted_slopes = [future.result() for future in futures]
+
+    permuted_slopes = pd.DataFrame(
+        np.stack(permuted_slopes, axis=1), columns=[f"p_{i}" for i in range(N)]
+    )
     permuted_slopes["edge"] = edges
     return permuted_slopes, permutation_scheme
 
