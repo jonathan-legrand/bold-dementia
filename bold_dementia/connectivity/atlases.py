@@ -29,7 +29,6 @@ def fetch_atlas_m5n33(
 
     df = pd.read_csv(atlas_csv)
     labels = df.RSN.to_list()
-    labels.insert(0, "Background")
     atlas_bunch = Bunch(
         maps=atlas_path,
         labels=labels,
@@ -115,7 +114,6 @@ def fetch_atlas_m5n33_regions(
     )
     labels = merged["Anatomical label achille 2024"] + "_" + merged["icol"].astype(str).map(lambda x: x.zfill(3))
     labels = labels.to_list()
-    labels.insert(0, "Background")
     
     atlas_bunch = Bunch(
         maps=atlas_path,
