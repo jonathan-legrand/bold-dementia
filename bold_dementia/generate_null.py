@@ -47,6 +47,13 @@ def init_argparse() -> argparse.ArgumentParser:
     )
 
     parser.add_argument(
+        "--n_jobs",
+        help="Number of parallel processes for fitting on permuted data",
+        type=int,
+        default=10
+    )
+    
+    parser.add_argument(
         "--seed",
         help="Custom seed for scan selection when there are multiple scans per subject",
         type=int,
@@ -55,7 +62,14 @@ def init_argparse() -> argparse.ArgumentParser:
     return parser
 
 
-def generate_and_export(maps_name, model_specs_path, n_permutations, use_dask, seed):
+def generate_and_export(
+    maps_name,
+    model_specs_path,
+    n_permutations,
+    use_dask,
+    n_jobs,
+    seed,
+    ):
     maps_path = Path(config["connectivity_matrices"]) / maps_name
     
     maps_specs = get_config(maps_path / "parameters.yml")
