@@ -1,6 +1,7 @@
 
 import json
 import sys
+import os
 from pathlib import Path
 import warnings
 from bold_dementia import get_config
@@ -20,9 +21,9 @@ from bold_dementia.data.volumes import add_volumes
 from bold_dementia.utils.saving import save_run
 from bold_dementia.utils.iterables import join, all_connectivities
 
-config = get_config("/bigdata/jlegrand/AD-prediction/config.yml") #Awful
 # TODO Should probably be refactored in OO way since 
 # we keep passing config around
+config = get_config(Path(os.getcwd()) / "config.yml") # We will need volumes path from conf
 
 # TODO Format report only, do not print, and move to utils
 def display_df_report(df):
@@ -165,6 +166,6 @@ def make_fc_data(maps_path, maps_spec, model_spec, seed=1234):
     # TODO Pass TIV only to be more efficient?
     if "total intracranial" in model_spec["RHS_FORMULA"]:
         print("Add intracranial volumes to phenotypes")
-        df = add_volumes(df, config["volumes"])
+        df = add_volumes(df, Path(config["data_dir"]) / "volumes.csv")
     
     return df, edges, model_spec

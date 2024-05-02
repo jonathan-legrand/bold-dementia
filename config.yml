@@ -1,20 +1,13 @@
+# Non standard yml, to be parsed with https://github.com/mkaranasou/pyaml_env
 #DATA PATH
-data_dir: /homes_unix/jlegrand/data/Memento
-output_dir: /homes_unix/jlegrand/data/Memento/output
+data_dir: !ENV ${HOME}/data/Memento
+output_dir: !ENV ${HOME}/data/Memento/output
 bids_dir: "/georges/memento/BIDS"
 connectivity_matrices: "/homes_unix/jlegrand/data/Memento/output/connectivity"
 statresults: "/homes_unix/jlegrand/data/Memento/output/statresults"
-volumes: "/bigdata/jlegrand/data/Memento/volumes.csv"
-custom_atlases : /homes_unix/jlegrand/data/Memento/atlas
+custom_atlases : !ENV ${HOME}/data/Memento/atlas
 
-#FMRI STUDY PARAMETERS
-confounds_strategy:
-  strategy: ["high_pass", "motion", "wm_csf"]
-  motion: "basic"
-  wm_csf: "basic"
-alpha: 0.05
-
-# COMPARE MAPS DEFAULT RUN
+# CREATE MAPS DEFAULT RUN
 default_run:
   confounds_strategy:
     strategy: ["high_pass", "motion", "wm_csf"]
@@ -31,3 +24,4 @@ default_run:
 seed: 1234
 age_tol: 1
 sex_prop_tol: 0.1
+alpha: 0.05

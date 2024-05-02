@@ -1,6 +1,6 @@
-import yaml
+from pyaml_env import parse_config
 
 def get_config(fpath="config.yml"):
-    with open(fpath, 'r') as file:
-        config = yaml.safe_load(file)
+    config = parse_config(path=fpath)
     return config
+

@@ -28,7 +28,7 @@ import os
 #os.environ['PYTHONWARNINGS']='ignore::ConvergenceWarning'
 
 def main():
-    maps_path = Path(config["connectivity_matrices"]) / sys.argv[1]
+    maps_path = Path(config["output_dir"]) / "connectivity" / sys.argv[1]
     model_specs_path = Path(sys.argv[2])
     
     maps_specs = get_config(maps_path / "parameters.yml")
