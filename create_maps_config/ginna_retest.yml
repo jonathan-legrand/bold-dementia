@@ -5,7 +5,7 @@ SOFT: False
 ATLAS: "GINNA"
 CLEAN_SIGNAL: True
 MACRO_LABELS: False
-NAME: "merged"
+NAME: "retest"
 BALANCE_STRAT: []
 cache_dir: "/georges/memento/BIDS/derivatives/gillig_retest"
 posfunc: "past_diag_AD"
