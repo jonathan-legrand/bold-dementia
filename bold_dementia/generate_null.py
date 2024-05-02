@@ -93,7 +93,7 @@ def generate_and_export(
             )
     else:
         permuted_slopes, _ = generate_null(
-            df, edges, parameters, N=100, seed=seed, n_jobs=8
+            df, edges, parameters, N=100, seed=seed, n_jobs=n_jobs
         )
     params = merge_configs(maps_specs, model_specs)
     export_path = save_run(
