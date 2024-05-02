@@ -70,7 +70,7 @@ def generate_and_export(
     n_jobs,
     seed,
     ):
-    maps_path = Path(config["connectivity_matrices"]) / maps_name
+    maps_path = Path(config["output_dir"]) / "connectivity" / maps_name
     
     maps_specs = get_config(maps_path / "parameters.yml")
     model_specs = get_config(model_specs_path)

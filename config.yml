@@ -3,7 +3,6 @@
 data_dir: !ENV ${HOME}/data/Memento
 output_dir: !ENV ${HOME}/data/Memento/output
 bids_dir: "/georges/memento/BIDS"
-connectivity_matrices: "/homes_unix/jlegrand/data/Memento/output/connectivity"
 statresults: "/homes_unix/jlegrand/data/Memento/output/statresults"
 custom_atlases : !ENV ${HOME}/data/Memento/atlas
 
