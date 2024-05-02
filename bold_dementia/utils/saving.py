@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import Callable
 from bold_dementia import get_config
 
-config = get_config("/bigdata/jlegrand/AD-prediction/config.yml")
+config = get_config(Path(os.getcwd()) / "config.yml") # We will need volumes path from conf
 
 def save_run(
     run_config: str,
