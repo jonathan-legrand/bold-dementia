@@ -10,13 +10,14 @@ from nilearn import datasets
 import pandas as pd
 import nibabel as nib
 import numpy as np
+import os
 
 from bold_dementia import get_config
 
 # TODO This is just a quick fix
-config = {
-    "custom_atlases": "/homes_unix/jlegrand/data/Memento/atlas"
-}
+config = get_config(Path(os.getcwd()) / "config.yml") # We will need volumes path from conf
+config["custom_atlases"] = f"{config['data_dir']}/atlas"
+
 
 def fetch_atlas_m5n33(
     atlas_csv=f"{config['custom_atlases']}/RSN_N33/flat_m5n33.csv",
@@ -92,9 +93,9 @@ def create_m5_notrunc_(old_atlas_path=Path("/bigdata/jlegrand/data/Memento/atlas
 
     
 def fetch_atlas_m5n33_regions(
-        atlas_tsv="/bigdata/jlegrand/data/Memento/atlas/RSN_M5_clean2_ws.dat",
-        updated_rsn="/bigdata/jlegrand/data/Memento/atlas/RSN_N33/RSN41_cognitive_labeling_updated.csv",
-        atlas_path="/bigdata/jlegrand/data/Memento/atlas/M5_no-trunc.nii.gz"
+        atlas_tsv=f"{config['custom_atlases']}/RSN_M5_clean2_ws.dat",
+        updated_rsn=f"{config['custom_atlases']}/RSN_N33/RSN41_cognitive_labeling_updated.csv",
+        atlas_path=f"{config['custom_atlases']}/M5_no-trunc.nii.gz"
     ):
     original_labels = pd.read_csv(atlas_tsv, sep="\t")
     networks = "RSN" + original_labels["RSN"].astype(str).apply(lambda x: x.zfill(2))
@@ -104,7 +105,7 @@ def fetch_atlas_m5n33_regions(
     notrunc = original_labels.drop(original_labels[original_labels.tissue.str.contains("trunc")].index, axis=0)
 
     updated_rsn = pd.read_csv(
-        "/bigdata/jlegrand/data/Memento/atlas/RSN_N33/RSN41_cognitive_labeling_updated.csv"
+        f"{config['custom_atlases']}/RSN_N33/RSN41_cognitive_labeling_updated.csv"
     )
     merged = pd.merge(
         notrunc,
