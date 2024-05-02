@@ -43,7 +43,7 @@ def init_argparse() -> argparse.ArgumentParser:
         "--use_dask",
         help="Set to True to use dask to submit jobs on SLURM",
         type=bool,
-        default=False
+        default=True
     )
 
     parser.add_argument(
@@ -84,9 +84,9 @@ def generate_and_export(
             cores=1,
             memory="1GB",
             walltime="00:05:00",
-            log_directory="/homes_unix/jlegrand/dask_logs"
+            log_directory="/tmp"
         ) as cluster:
-            cluster.scale(10)
+            cluster.scale(n_jobs)
             client = Client(cluster)
             permuted_slopes, permutation_scheme = generate_null_dask(
                 df, edges, parameters, client, N=n_permutations
