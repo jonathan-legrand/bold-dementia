@@ -83,8 +83,8 @@ def generate_and_export(
         with SLURMCluster(
             cores=1,
             memory="1GB",
-            walltime="00:05:00",
-            log_directory="/tmp"
+            walltime="02:00:00",
+            log_directory="/tmp/dask"
         ) as cluster:
             cluster.scale(n_jobs)
             client = Client(cluster)
