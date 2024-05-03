@@ -88,12 +88,13 @@ def generate_and_export(
         ) as cluster:
             cluster.scale(n_jobs)
             client = Client(cluster)
+            print(client.dashboard_link)
             permuted_slopes, permutation_scheme = generate_null_dask(
                 df, edges, parameters, client, N=n_permutations
             )
     else:
         permuted_slopes, _ = generate_null(
-            df, edges, parameters, N=100, seed=seed, n_jobs=n_jobs
+            df, edges, parameters, N=n_permutations, seed=seed, n_jobs=n_jobs
         )
     params = merge_configs(maps_specs, model_specs)
     export_path = save_run(
