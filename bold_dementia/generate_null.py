@@ -81,8 +81,8 @@ def generate_and_export(
     # Experimental dask version
     if use_dask:
         with SLURMCluster(
-            cores=1,
-            memory="1GB",
+            cores=2,
+            memory="10GB",
             walltime="02:00:00",
             log_directory="/tmp/dask"
         ) as cluster:
