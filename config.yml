@@ -3,7 +3,8 @@
 data_dir: !ENV ${HOME}/data/Memento
 output_dir: !ENV ${HOME}/data/Memento/output
 bids_dir: "/georges/memento/BIDS"
-statresults: "/homes_unix/jlegrand/data/Memento/output/statresults"
+statresults: !ENV ${HOME}/data/Memento/output/statresults
+connectivity_matrices: !ENV ${HOME}/data/Memento/output/connectivity
 custom_atlases : !ENV ${HOME}/data/Memento/atlas
 
 # CREATE MAPS DEFAULT RUN
