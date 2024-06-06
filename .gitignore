@@ -1,4 +1,4 @@
 /AICHA
 /dataset_cache
-/nilearn_cache
+*nilearn_cache*
 __pycache__
