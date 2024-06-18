@@ -98,6 +98,7 @@ def fetch_atlas_m5n33_regions(
         atlas_path=f"{config['custom_atlases']}/M5_no-trunc.nii.gz"
     ):
     original_labels = pd.read_csv(atlas_tsv, sep="\t")
+    original_labels["voxel_value"] = original_labels.index.values + 1
     networks = "RSN" + original_labels["RSN"].astype(str).apply(lambda x: x.zfill(2))
     original_labels["Numbering_original"] = networks
 
@@ -141,6 +142,7 @@ def fetch_atlas_rsn41(
         description="Experimental atlas of resting state networks"
     )
     return atlas_bunch
+
 
 
 def fetch_aicha(
