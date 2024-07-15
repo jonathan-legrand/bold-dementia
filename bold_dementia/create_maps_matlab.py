@@ -66,7 +66,7 @@ def create_maps(run_config):
             eval(posfunc_name),
             eval(negfunc_name),
             clean_signal=run_config["CLEAN_SIGNAL"],
-            confounds_strategy=run_config["confounds_strategy"]
+            confounds_strategy=run_config["confounds_strategy"],
         )
 
     if "complete_subs_only" in run_config["BALANCE_STRAT"]:

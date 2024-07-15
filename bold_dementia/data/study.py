@@ -104,9 +104,42 @@ def balance_control(
         print(f"{len(control)} controls left")
 
     return pos, control
-        
 
-def load_signals(dataset, is_pos_func, is_neg_func, clean_signal=False, confounds_strategy=None):
+        
+from nilearn.interfaces.bids import parse_bids_filename
+import json
+from pathlib import Path
+def fetch_tr(fpath:Path)->float:
+    """Fetches TR of a given scan in the corresponding json sidecar
+
+    Args:
+        fpath (Path): Path of the scan file
+
+    Returns:
+        float: TR in seconds
+    """
+    sidecar_path = fpath.parent / fpath.name.replace(".nii.gz", ".json")
+    with open(sidecar_path, "r") as stream:
+        sidecar = json.load(stream)
+    tr = sidecar["RepetitionTime"]
+    return tr
+
+
+from nipype.algorithms.confounds import _cosine_drift
+import numpy as np
+
+def add_drifts(confounds, tr, pcut=100):
+    time = np.array([tr * i for i in range(len(confounds))])
+    drifts = _cosine_drift(pcut, time)
+    drifts = pd.DataFrame(drifts, columns=[f"cosine{i}" for i in range(drifts.shape[1])])
+    return pd.merge(
+        confounds,
+        drifts,
+        left_index=True,
+        right_index=True,
+    )
+
+def load_signals(dataset, is_pos_func, is_neg_func, clean_signal=False, confounds_strategy=None, **clean_kwargs):
     pos_ts = []
     neg_ts = []
     pos_meta = []
@@ -117,12 +150,23 @@ def load_signals(dataset, is_pos_func, is_neg_func, clean_signal=False, confound
             confounds, sample_mask = load_confounds(
                 fpath, **confounds_strategy
             )
+            print(confounds_strategy)
+            if "high_pass" not in confounds_strategy["strategy"]:
+                print("Adding cosine waves to confouds with default period cut")
+
+                # We have to add drifts manually because nilearn won't
+                # allow cosine filtering when some confounds are too
+                # correlated with the cosine waves
+                tr = fetch_tr(Path(fpath))
+                confounds = add_drifts(confounds, tr)
+
             with warnings.catch_warnings(action="ignore", category=DeprecationWarning):
                 cleaned_ts = signal.clean(
                     ts,
                     sample_mask=sample_mask,
                     confounds=confounds,
-                    standardize="zscore_sample"
+                    standardize="zscore_sample",
+                    **clean_kwargs
                 )
         else:
             cleaned_ts = ts
