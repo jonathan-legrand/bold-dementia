@@ -8,7 +8,7 @@ cached in a dedicated directory.
 from pathlib import Path
 from data.memento import Memento
 from bold_dementia import get_config
-from neuroginius.atlases import Atlas
+from neuroginius.atlas import Atlas
 
 config = get_config()
 
