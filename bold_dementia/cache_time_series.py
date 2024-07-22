@@ -7,9 +7,7 @@ cached in a dedicated directory.
 
 from pathlib import Path
 from data.memento import Memento
-from connectivity.atlases import fetch_aicha
 from bold_dementia import get_config
-from nilearn.datasets import fetch_atlas_harvard_oxford
 from connectivity.atlases import Atlas
 
 config = get_config()
