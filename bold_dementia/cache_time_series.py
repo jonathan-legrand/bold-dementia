@@ -34,7 +34,14 @@ if __name__ == "__main__":
     is_soft = eval(sys.argv[2])
     if not isinstance(is_soft, bool):
         raise TypeError("is_soft should be in {True, False}")
-    atlas = Atlas.from_name(sys.argv[1], soft=eval(sys.argv[2]))
+
+    try:
+        atlas = Atlas.from_name(sys.argv[1], soft=eval(sys.argv[2]))
+    except KeyError:
+        print("Loading custom parcellation")
+        i_path = Path(config["parcellations"]) / sys.argv[1]
+        atlas = Atlas.from_path(i_path)
+
     try:
         pname = sys.argv[3]
     except IndexError:

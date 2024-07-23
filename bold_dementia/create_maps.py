@@ -62,10 +62,14 @@ def compute_cov_prec(time_series, kind="covariance"):
 
 
 def create_maps(run_config):
-    atlas = Atlas.from_name(
-        run_config["ATLAS"],
-        run_config["SOFT"]
-    )
+    try:
+        atlas = Atlas.from_name(
+            run_config["ATLAS"],
+            run_config["SOFT"]
+        )
+    except KeyError:
+            i_path = Path(config["parcellations"]) / "ncomponents-20_nregions-129"
+            atlas = Atlas.from_path(i_path)
     try:
         cache_dir = run_config["cache_dir"]
     except KeyError:
