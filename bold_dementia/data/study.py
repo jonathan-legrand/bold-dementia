@@ -150,7 +150,6 @@ def load_signals(dataset, is_pos_func, is_neg_func, clean_signal=False, confound
             confounds, sample_mask = load_confounds(
                 fpath, **confounds_strategy
             )
-            print(confounds_strategy)
             if "high_pass" not in confounds_strategy["strategy"]:
                 print("Adding cosine waves to confouds with default period cut")
 
