@@ -10,3 +10,4 @@ BALANCE_STRAT: []
 cache_dir: "/georges/memento/BIDS/derivatives/ncomponents-80_nregions-266_merged_phenotypes"
 posfunc: "all_subs"
 negfunc: "delete_me"
+KIND: "tangent"
