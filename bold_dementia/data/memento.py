@@ -1,6 +1,3 @@
-import torch
-from torch.utils.data import Dataset, DataLoader
-
 from typing import List
 from pathlib import Path
 import pandas as pd
@@ -11,12 +8,11 @@ import json
 import math
 
 from nilearn.interfaces.bids import get_bids_files, parse_bids_filename
-from nilearn.datasets import fetch_atlas_harvard_oxford
 from nilearn.maskers import NiftiMapsMasker, NiftiLabelsMasker
 from nilearn.interfaces.fmriprep import load_confounds
 
 from bold_dementia.data.phenotypes import days_to_onset, timedelta_to_years
-from bold_dementia.connectivity.atlases import Atlas
+from neuroginius.atlas import Atlas
 
 session_mapping = {
     "IRM_M0": "M000",
@@ -56,7 +52,7 @@ def converter_M000(row):
 
 # TODO Type annotations
 # TODO Custom target func like MementoTS
-class Memento(torch.utils.data.Dataset):
+class Memento:
     def __init__(
         self,
         bids_path,
