@@ -1,0 +1,12 @@
+# COMPARE MAPS DEFAULT RUN
+confounds_strategy:
+  strategy: ["motion", "wm_csf"]
+SOFT: False
+ATLAS: "GINNA"
+CLEAN_SIGNAL: True
+MACRO_LABELS: False
+NAME: "high-pass"
+BALANCE_STRAT: []
+cache_dir: "/georges/memento/BIDS/derivatives/gillig_merged_phenotypes"
+posfunc: "all_subs"
+negfunc: "delete_me"
