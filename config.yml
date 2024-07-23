@@ -6,6 +6,7 @@ bids_dir: "/georges/memento/BIDS"
 statresults: !ENV ${HOME}/data/Memento/output/statresults
 connectivity_matrices: !ENV ${HOME}/data/Memento/output/connectivity
 custom_atlases : !ENV ${HOME}/data/Memento/atlas
+parcellations : !ENV ${HOME}/data/Memento/output/parcellations
 
 # CREATE MAPS DEFAULT RUN
 default_run:
